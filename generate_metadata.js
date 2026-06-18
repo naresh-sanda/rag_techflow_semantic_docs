@@ -2,6 +2,16 @@ const fs = require('fs');
 const path = require('path');
 
 const data = {
+  L1_Source_Connections: {
+    headers: ["System ID", "System Name", "System Type", "Host/Endpoint", "Source DB/Schema", "Extract Frequency", "Extraction Method"],
+    rows: [
+      ["S01", "Salesforce", "Cloud API", "api.salesforce.com", "SF_PRODUCTION", "Daily", "Incremental CDC"],
+      ["S02", "Epicor", "MS SQL Server", "10.0.1.45", "ERP_LIVE.DBO", "Hourly", "Transaction Log Sync"],
+      ["S03", "Priority", "Oracle Database", "10.0.1.60", "PR_PROD.DBO", "Daily", "Full Load"],
+      ["S04", "SAP", "SAP HANA", "hana-prod.sap.internal", "S4H.SCHEMA", "Real-time", "SLT Replication"],
+      ["S05", "Snowflake", "Snowflake DWH", "xy12345.snowflakecomputing.com", "RAW_STAGE", "Hourly", "Snowpipe"]
+    ]
+  },
   L2_Standardized_Attributes: {
     headers: ["Salesforce Column", "Epicor Column", "Priority Column", "SAP Column", "Snowflake Column", "Standard Business Attribute", "Datatype", "Confidence", "Reviewed By"],
     rows: [
@@ -65,6 +75,52 @@ const data = {
     rows: [
       ["Employee", "Employee Absence", "One-To-Many"],
       ["Department", "Employee", "One-To-Many"]
+    ]
+  },
+  DWH_Dimensions_Facts: {
+    headers: ["Table Name", "Table Type", "Column Name", "Is Primary Key", "Is Foreign Key", "Referenced Table", "Datatype", "Description"],
+    rows: [
+      ["dim_employee", "Dimension", "employee_key", "Yes", "No", "", "INTEGER", "Surrogate primary key for employee dimension"],
+      ["dim_employee", "Dimension", "source_system", "No", "No", "", "VARCHAR", "System from which the record was extracted"],
+      ["dim_employee", "Dimension", "employee_id", "No", "No", "", "VARCHAR", "Source system employee unique ID"],
+      ["dim_employee", "Dimension", "employee_name", "No", "No", "", "VARCHAR", "Full name of the employee"],
+      ["dim_employee", "Dimension", "email", "No", "No", "", "VARCHAR", "Corporate email address"],
+      ["dim_department", "Dimension", "department_key", "Yes", "No", "", "INTEGER", "Surrogate primary key for department"],
+      ["dim_department", "Dimension", "department_name", "No", "No", "", "VARCHAR", "Standardized department name"],
+      ["fct_absences", "Fact", "absence_key", "Yes", "No", "", "INTEGER", "Surrogate key for facts"],
+      ["fct_absences", "Fact", "employee_key", "No", "Yes", "dim_employee", "INTEGER", "FK linking to employee dimension"],
+      ["fct_absences", "Fact", "department_key", "No", "Yes", "dim_department", "INTEGER", "FK linking to department dimension"],
+      ["fct_absences", "Fact", "absence_date", "No", "No", "", "DATE", "Calendar date of the absence"],
+      ["fct_absences", "Fact", "absence_count", "No", "No", "", "INTEGER", "Absence unit count (1 for full day, etc.)"],
+      ["fct_revenue", "Fact", "revenue_key", "Yes", "No", "", "INTEGER", "Surrogate key for revenue entries"],
+      ["fct_revenue", "Fact", "department_key", "No", "Yes", "dim_department", "INTEGER", "FK linking to department dimension"],
+      ["fct_revenue", "Fact", "revenue_amount", "No", "No", "", "DECIMAL", "Transactional revenue amount"],
+      ["fct_revenue", "Fact", "posting_date", "No", "No", "", "DATE", "Financial ledger post date"]
+    ]
+  },
+  DM_Data_Marts: {
+    headers: ["Mart Name", "Target View/Table", "Column Name", "Source DWH Fields", "Aggregation / Formula", "Business Owner"],
+    rows: [
+      ["dm_employee_absence", "v_dm_employee_absence", "department_name", "dim_department.department_name", "None (Group By)", "HR Analytics Team"],
+      ["dm_employee_absence", "v_dm_employee_absence", "absence_date", "fct_absences.absence_date", "None (Group By)", "HR Analytics Team"],
+      ["dm_employee_absence", "v_dm_employee_absence", "total_absences", "fct_absences.absence_count", "SUM(absence_count)", "HR Analytics Team"],
+      ["dm_employee_absence", "v_dm_employee_absence", "active_employee_count", "dim_employee.employee_key", "COUNT(DISTINCT employee_key)", "HR Analytics Team"],
+      ["dm_revenue", "v_dm_revenue", "department_name", "dim_department.department_name", "None (Group By)", "Finance Controlling"],
+      ["dm_revenue", "v_dm_revenue", "fiscal_period", "dim_date.fiscal_period", "None (Group By)", "Finance Controlling"],
+      ["dm_revenue", "v_dm_revenue", "total_revenue", "fct_revenue.revenue_amount", "SUM(revenue_amount)", "Finance Controlling"]
+    ]
+  },
+  ETL_Lineage_Jobs: {
+    headers: ["Job ID", "Job Name", "Source Table/Object", "Transformation Layer", "Target DWH Table", "Dependency", "Load Type"],
+    rows: [
+      ["J01", "extract_sfdc_absences", "Salesforce.ABSENTCHART", "L1 Raw Ingestion", "stg_sf_absences", "None", "Incremental"],
+      ["J02", "extract_sap_absences", "SAP.PA2001", "L1 Raw Ingestion", "stg_sap_absences", "None", "Incremental"],
+      ["J03", "load_dim_employee", "stg_sf_employees, stg_sap_employees", "DWH Core Dim", "dim_employee", "J01, J02", "UPSERT (SCD Type 1)"],
+      ["J04", "load_dim_department", "stg_sf_departments", "DWH Core Dim", "dim_department", "None", "Full Refresh"],
+      ["J05", "load_fct_absences", "stg_sf_absences, stg_sap_absences", "DWH Core Fact", "fct_absences", "J03, J04", "Incremental APPEND"],
+      ["J06", "load_fct_revenue", "stg_sf_opportunity, stg_sap_ledger", "DWH Core Fact", "fct_revenue", "J04", "Incremental APPEND"],
+      ["J07", "refresh_dm_employee_absence", "dim_employee, dim_department, fct_absences", "Data Mart View", "dm_employee_absence", "J05", "On-Demand Refresh"],
+      ["J08", "refresh_dm_revenue", "dim_department, fct_revenue", "Data Mart View", "dm_revenue", "J06", "On-Demand Refresh"]
     ]
   }
 };

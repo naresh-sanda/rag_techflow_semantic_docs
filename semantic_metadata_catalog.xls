@@ -7,7 +7,7 @@
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
   <Author>Antigravity AI</Author>
-  <Created>2026-06-18T12:21:07.089Z</Created>
+  <Created>2026-06-18T12:32:22.298Z</Created>
  </DocumentProperties>
  <Styles>
   <Style ss:ID="Default" ss:Name="Normal">
@@ -33,6 +33,64 @@
    </Borders>
   </Style>
  </Styles>
+ <Worksheet ss:Name="L1_Source_Connections">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">System ID</Data></Cell>
+    <Cell><Data ss:Type="String">System Name</Data></Cell>
+    <Cell><Data ss:Type="String">System Type</Data></Cell>
+    <Cell><Data ss:Type="String">Host/Endpoint</Data></Cell>
+    <Cell><Data ss:Type="String">Source DB/Schema</Data></Cell>
+    <Cell><Data ss:Type="String">Extract Frequency</Data></Cell>
+    <Cell><Data ss:Type="String">Extraction Method</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">S01</Data></Cell>
+    <Cell><Data ss:Type="String">Salesforce</Data></Cell>
+    <Cell><Data ss:Type="String">Cloud API</Data></Cell>
+    <Cell><Data ss:Type="String">api.salesforce.com</Data></Cell>
+    <Cell><Data ss:Type="String">SF_PRODUCTION</Data></Cell>
+    <Cell><Data ss:Type="String">Daily</Data></Cell>
+    <Cell><Data ss:Type="String">Incremental CDC</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">S02</Data></Cell>
+    <Cell><Data ss:Type="String">Epicor</Data></Cell>
+    <Cell><Data ss:Type="String">MS SQL Server</Data></Cell>
+    <Cell><Data ss:Type="String">10.0.1.45</Data></Cell>
+    <Cell><Data ss:Type="String">ERP_LIVE.DBO</Data></Cell>
+    <Cell><Data ss:Type="String">Hourly</Data></Cell>
+    <Cell><Data ss:Type="String">Transaction Log Sync</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">S03</Data></Cell>
+    <Cell><Data ss:Type="String">Priority</Data></Cell>
+    <Cell><Data ss:Type="String">Oracle Database</Data></Cell>
+    <Cell><Data ss:Type="String">10.0.1.60</Data></Cell>
+    <Cell><Data ss:Type="String">PR_PROD.DBO</Data></Cell>
+    <Cell><Data ss:Type="String">Daily</Data></Cell>
+    <Cell><Data ss:Type="String">Full Load</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">S04</Data></Cell>
+    <Cell><Data ss:Type="String">SAP</Data></Cell>
+    <Cell><Data ss:Type="String">SAP HANA</Data></Cell>
+    <Cell><Data ss:Type="String">hana-prod.sap.internal</Data></Cell>
+    <Cell><Data ss:Type="String">S4H.SCHEMA</Data></Cell>
+    <Cell><Data ss:Type="String">Real-time</Data></Cell>
+    <Cell><Data ss:Type="String">SLT Replication</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">S05</Data></Cell>
+    <Cell><Data ss:Type="String">Snowflake</Data></Cell>
+    <Cell><Data ss:Type="String">Snowflake DWH</Data></Cell>
+    <Cell><Data ss:Type="String">xy12345.snowflakecomputing.com</Data></Cell>
+    <Cell><Data ss:Type="String">RAW_STAGE</Data></Cell>
+    <Cell><Data ss:Type="String">Hourly</Data></Cell>
+    <Cell><Data ss:Type="String">Snowpipe</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
  <Worksheet ss:Name="L2_Standardized_Attributes">
   <Table>
    <Row ss:Height="22" ss:StyleID="HeaderStyle">
@@ -311,6 +369,333 @@
     <Cell><Data ss:Type="String">Department</Data></Cell>
     <Cell><Data ss:Type="String">Employee</Data></Cell>
     <Cell><Data ss:Type="String">One-To-Many</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="DWH_Dimensions_Facts">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Table Name</Data></Cell>
+    <Cell><Data ss:Type="String">Table Type</Data></Cell>
+    <Cell><Data ss:Type="String">Column Name</Data></Cell>
+    <Cell><Data ss:Type="String">Is Primary Key</Data></Cell>
+    <Cell><Data ss:Type="String">Is Foreign Key</Data></Cell>
+    <Cell><Data ss:Type="String">Referenced Table</Data></Cell>
+    <Cell><Data ss:Type="String">Datatype</Data></Cell>
+    <Cell><Data ss:Type="String">Description</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dim_employee</Data></Cell>
+    <Cell><Data ss:Type="String">Dimension</Data></Cell>
+    <Cell><Data ss:Type="String">employee_key</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">Surrogate primary key for employee dimension</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dim_employee</Data></Cell>
+    <Cell><Data ss:Type="String">Dimension</Data></Cell>
+    <Cell><Data ss:Type="String">source_system</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">VARCHAR</Data></Cell>
+    <Cell><Data ss:Type="String">System from which the record was extracted</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dim_employee</Data></Cell>
+    <Cell><Data ss:Type="String">Dimension</Data></Cell>
+    <Cell><Data ss:Type="String">employee_id</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">VARCHAR</Data></Cell>
+    <Cell><Data ss:Type="String">Source system employee unique ID</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dim_employee</Data></Cell>
+    <Cell><Data ss:Type="String">Dimension</Data></Cell>
+    <Cell><Data ss:Type="String">employee_name</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">VARCHAR</Data></Cell>
+    <Cell><Data ss:Type="String">Full name of the employee</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dim_employee</Data></Cell>
+    <Cell><Data ss:Type="String">Dimension</Data></Cell>
+    <Cell><Data ss:Type="String">email</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">VARCHAR</Data></Cell>
+    <Cell><Data ss:Type="String">Corporate email address</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dim_department</Data></Cell>
+    <Cell><Data ss:Type="String">Dimension</Data></Cell>
+    <Cell><Data ss:Type="String">department_key</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">Surrogate primary key for department</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dim_department</Data></Cell>
+    <Cell><Data ss:Type="String">Dimension</Data></Cell>
+    <Cell><Data ss:Type="String">department_name</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">VARCHAR</Data></Cell>
+    <Cell><Data ss:Type="String">Standardized department name</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_absences</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">absence_key</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">Surrogate key for facts</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_absences</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">employee_key</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+    <Cell><Data ss:Type="String">dim_employee</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">FK linking to employee dimension</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_absences</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">department_key</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+    <Cell><Data ss:Type="String">dim_department</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">FK linking to department dimension</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_absences</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">absence_date</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">DATE</Data></Cell>
+    <Cell><Data ss:Type="String">Calendar date of the absence</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_absences</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">absence_count</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">Absence unit count (1 for full day, etc.)</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">revenue_key</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">Surrogate key for revenue entries</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">department_key</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">Yes</Data></Cell>
+    <Cell><Data ss:Type="String">dim_department</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">FK linking to department dimension</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">revenue_amount</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">DECIMAL</Data></Cell>
+    <Cell><Data ss:Type="String">Transactional revenue amount</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">fct_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Fact</Data></Cell>
+    <Cell><Data ss:Type="String">posting_date</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String">No</Data></Cell>
+    <Cell><Data ss:Type="String"></Data></Cell>
+    <Cell><Data ss:Type="String">DATE</Data></Cell>
+    <Cell><Data ss:Type="String">Financial ledger post date</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="DM_Data_Marts">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Mart Name</Data></Cell>
+    <Cell><Data ss:Type="String">Target View/Table</Data></Cell>
+    <Cell><Data ss:Type="String">Column Name</Data></Cell>
+    <Cell><Data ss:Type="String">Source DWH Fields</Data></Cell>
+    <Cell><Data ss:Type="String">Aggregation / Formula</Data></Cell>
+    <Cell><Data ss:Type="String">Business Owner</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">v_dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">department_name</Data></Cell>
+    <Cell><Data ss:Type="String">dim_department.department_name</Data></Cell>
+    <Cell><Data ss:Type="String">None (Group By)</Data></Cell>
+    <Cell><Data ss:Type="String">HR Analytics Team</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">v_dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">absence_date</Data></Cell>
+    <Cell><Data ss:Type="String">fct_absences.absence_date</Data></Cell>
+    <Cell><Data ss:Type="String">None (Group By)</Data></Cell>
+    <Cell><Data ss:Type="String">HR Analytics Team</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">v_dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">total_absences</Data></Cell>
+    <Cell><Data ss:Type="String">fct_absences.absence_count</Data></Cell>
+    <Cell><Data ss:Type="String">SUM(absence_count)</Data></Cell>
+    <Cell><Data ss:Type="String">HR Analytics Team</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">v_dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">active_employee_count</Data></Cell>
+    <Cell><Data ss:Type="String">dim_employee.employee_key</Data></Cell>
+    <Cell><Data ss:Type="String">COUNT(DISTINCT employee_key)</Data></Cell>
+    <Cell><Data ss:Type="String">HR Analytics Team</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dm_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">v_dm_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">department_name</Data></Cell>
+    <Cell><Data ss:Type="String">dim_department.department_name</Data></Cell>
+    <Cell><Data ss:Type="String">None (Group By)</Data></Cell>
+    <Cell><Data ss:Type="String">Finance Controlling</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dm_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">v_dm_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">fiscal_period</Data></Cell>
+    <Cell><Data ss:Type="String">dim_date.fiscal_period</Data></Cell>
+    <Cell><Data ss:Type="String">None (Group By)</Data></Cell>
+    <Cell><Data ss:Type="String">Finance Controlling</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">dm_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">v_dm_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">total_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">fct_revenue.revenue_amount</Data></Cell>
+    <Cell><Data ss:Type="String">SUM(revenue_amount)</Data></Cell>
+    <Cell><Data ss:Type="String">Finance Controlling</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="ETL_Lineage_Jobs">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Job ID</Data></Cell>
+    <Cell><Data ss:Type="String">Job Name</Data></Cell>
+    <Cell><Data ss:Type="String">Source Table/Object</Data></Cell>
+    <Cell><Data ss:Type="String">Transformation Layer</Data></Cell>
+    <Cell><Data ss:Type="String">Target DWH Table</Data></Cell>
+    <Cell><Data ss:Type="String">Dependency</Data></Cell>
+    <Cell><Data ss:Type="String">Load Type</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">J01</Data></Cell>
+    <Cell><Data ss:Type="String">extract_sfdc_absences</Data></Cell>
+    <Cell><Data ss:Type="String">Salesforce.ABSENTCHART</Data></Cell>
+    <Cell><Data ss:Type="String">L1 Raw Ingestion</Data></Cell>
+    <Cell><Data ss:Type="String">stg_sf_absences</Data></Cell>
+    <Cell><Data ss:Type="String">None</Data></Cell>
+    <Cell><Data ss:Type="String">Incremental</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">J02</Data></Cell>
+    <Cell><Data ss:Type="String">extract_sap_absences</Data></Cell>
+    <Cell><Data ss:Type="String">SAP.PA2001</Data></Cell>
+    <Cell><Data ss:Type="String">L1 Raw Ingestion</Data></Cell>
+    <Cell><Data ss:Type="String">stg_sap_absences</Data></Cell>
+    <Cell><Data ss:Type="String">None</Data></Cell>
+    <Cell><Data ss:Type="String">Incremental</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">J03</Data></Cell>
+    <Cell><Data ss:Type="String">load_dim_employee</Data></Cell>
+    <Cell><Data ss:Type="String">stg_sf_employees, stg_sap_employees</Data></Cell>
+    <Cell><Data ss:Type="String">DWH Core Dim</Data></Cell>
+    <Cell><Data ss:Type="String">dim_employee</Data></Cell>
+    <Cell><Data ss:Type="String">J01, J02</Data></Cell>
+    <Cell><Data ss:Type="String">UPSERT (SCD Type 1)</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">J04</Data></Cell>
+    <Cell><Data ss:Type="String">load_dim_department</Data></Cell>
+    <Cell><Data ss:Type="String">stg_sf_departments</Data></Cell>
+    <Cell><Data ss:Type="String">DWH Core Dim</Data></Cell>
+    <Cell><Data ss:Type="String">dim_department</Data></Cell>
+    <Cell><Data ss:Type="String">None</Data></Cell>
+    <Cell><Data ss:Type="String">Full Refresh</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">J05</Data></Cell>
+    <Cell><Data ss:Type="String">load_fct_absences</Data></Cell>
+    <Cell><Data ss:Type="String">stg_sf_absences, stg_sap_absences</Data></Cell>
+    <Cell><Data ss:Type="String">DWH Core Fact</Data></Cell>
+    <Cell><Data ss:Type="String">fct_absences</Data></Cell>
+    <Cell><Data ss:Type="String">J03, J04</Data></Cell>
+    <Cell><Data ss:Type="String">Incremental APPEND</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">J06</Data></Cell>
+    <Cell><Data ss:Type="String">load_fct_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">stg_sf_opportunity, stg_sap_ledger</Data></Cell>
+    <Cell><Data ss:Type="String">DWH Core Fact</Data></Cell>
+    <Cell><Data ss:Type="String">fct_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">J04</Data></Cell>
+    <Cell><Data ss:Type="String">Incremental APPEND</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">J07</Data></Cell>
+    <Cell><Data ss:Type="String">refresh_dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">dim_employee, dim_department, fct_absences</Data></Cell>
+    <Cell><Data ss:Type="String">Data Mart View</Data></Cell>
+    <Cell><Data ss:Type="String">dm_employee_absence</Data></Cell>
+    <Cell><Data ss:Type="String">J05</Data></Cell>
+    <Cell><Data ss:Type="String">On-Demand Refresh</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">J08</Data></Cell>
+    <Cell><Data ss:Type="String">refresh_dm_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">dim_department, fct_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Data Mart View</Data></Cell>
+    <Cell><Data ss:Type="String">dm_revenue</Data></Cell>
+    <Cell><Data ss:Type="String">J06</Data></Cell>
+    <Cell><Data ss:Type="String">On-Demand Refresh</Data></Cell>
    </Row>
   </Table>
  </Worksheet>
