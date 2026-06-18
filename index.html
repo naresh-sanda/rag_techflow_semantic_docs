@@ -672,6 +672,7 @@
       <div class="hero-tag">Deployment Live • Static Pages Hub</div>
       <h1>Enterprise Semantic NLP &<br><span class="editorial-font">Retrieval-Augmented Generation</span> Portal</h1>
       <p>A comprehensive design specification and developer dashboard documenting semantic routing, unified catalogs, and distributed data pipeline execution paths.</p>
+      <div style="font-size: 13px; color: var(--muted); margin-top: 10px; font-weight: 500;">Author: Anvizent AI Architecture Team</div>
     </section>
 
     <!-- Document Showcase Grid -->
@@ -703,7 +704,7 @@
             </li>
           </ul>
         </div>
-        <a href="Enterprise_Semantic_NLP_RAG_Architecture.html" class="launch-btn">
+        <a href="Enterprise_Semantic_NLP_RAG_Architecture.html?v=1.0.1" class="launch-btn">
           Launch Technical Reference ➔
         </a>
       </div>
@@ -734,7 +735,7 @@
             </li>
           </ul>
         </div>
-        <a href="semantic_assistant_architecture.html" class="launch-btn">
+        <a href="semantic_assistant_architecture.html?v=1.0.1" class="launch-btn">
           Open Editorial Brief ➔
         </a>
       </div>
@@ -765,7 +766,7 @@
             </li>
           </ul>
         </div>
-        <a href="metadata_storage_architecture.html" class="launch-btn">
+        <a href="metadata_storage_architecture.html?v=1.0.1" class="launch-btn">
           Open Storage Strategy ➔
         </a>
       </div>
@@ -795,7 +796,7 @@
       <div class="analyzer-layout">
         <!-- Preset Questions -->
         <div class="presets-container">
-          <button class="preset-btn active" onclick="activatePreset('hr')">
+          <button class="preset-btn active" onclick="activatePreset('hr', event)">
             <div class="preset-btn-title">
               <span>Employee Absences Analysis</span>
               <span class="preset-badge hybrid">Hybrid</span>
@@ -803,7 +804,7 @@
             <div class="preset-desc">"Why did employee absences increase last month in EMEA region?"</div>
           </button>
           
-          <button class="preset-btn" onclick="activatePreset('fin')">
+          <button class="preset-btn" onclick="activatePreset('fin', event)">
             <div class="preset-btn-title">
               <span>Departmental Headcount Query</span>
               <span class="preset-badge sql">SQL Facts</span>
@@ -811,7 +812,7 @@
             <div class="preset-desc">"How many full-time staff do we have in the Finance division?"</div>
           </button>
 
-          <button class="preset-btn" onclick="activatePreset('sales')">
+          <button class="preset-btn" onclick="activatePreset('sales', event)">
             <div class="preset-btn-title">
               <span>Sales Discount Policy Policy</span>
               <span class="preset-badge rag">RAG Doc</span>
@@ -854,7 +855,7 @@
     <!-- Portal Footer -->
     <footer class="portal-footer">
       <p>Enterprise RAG Knowledge Base Architecture Reference Portal • Standard HTML5 / CSS3 / ES6</p>
-      <p style="font-size: 11px;">Designed for high-performance static hosting on GitHub Pages with zero external dependencies.</p>
+      <p style="font-size: 11px;">Author: Anvizent AI Architecture Team • Designed for high-performance static hosting on GitHub Pages with zero external dependencies.</p>
     </footer>
 
   </div>
@@ -878,11 +879,23 @@
       }
     };
 
-    function activatePreset(type) {
+    function activatePreset(type, evt) {
       // Toggle button states
       const buttons = document.querySelectorAll('.preset-btn');
       buttons.forEach(btn => btn.classList.remove('active'));
-      event.currentTarget.classList.add('active');
+      
+      const currentEvt = evt || (typeof event !== 'undefined' ? event : null);
+      if (currentEvt && currentEvt.currentTarget) {
+        currentEvt.currentTarget.classList.add('active');
+      } else {
+        // Fallback on page load / timeout
+        let btnIndex = 0;
+        if (type === 'fin') btnIndex = 1;
+        if (type === 'sales') btnIndex = 2;
+        if (buttons[btnIndex]) {
+          buttons[btnIndex].classList.add('active');
+        }
+      }
 
       const data = scenarios[type];
       
