@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Loading &amp; Tuning Add-On Architecture</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #f47920;
+      --primary-light: #ffb066;
+      --primary-glow: rgba(244, 121, 32, 0.15);
+
+      --terracotta: #c2410c;
+      --terracotta-bg: #ffedd5;
+
+      --indigo: #6366f1;
+      --indigo-glow: rgba(99, 102, 241, 0.15);
+
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+
+      --amber: #f59e0b;
+      --red: #ef4444;
+
+      /* Dark Theme (Default) */
+      --bg: #0b0f19;
+      --bg-grid: rgba(255, 255, 255, 0.02);
+      --card: #111827;
+      --card-2: #0e1524;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #d1d5db;
+      --navy: #f9fafb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --badge-bg: #1e293b;
+      --code-bg: #0a0e17;
+
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 2px 8px -1px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 25px 40px -10px rgba(244, 121, 32, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.4);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.light-theme {
+      --bg: #f8fafc;
+      --bg-grid: rgba(15, 23, 42, 0.015);
+      --card: #ffffff;
+      --card-2: #f8fafc;
+      --card-border: rgba(15, 23, 42, 0.06);
+      --text: #475569;
+      --navy: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --badge-bg: #f1f5f9;
+      --code-bg: #0f172a;
+
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-hover: 0 20px 25px -5px rgba(99, 102, 241, 0.1), 0 10px 10px -5px rgba(99, 102, 241, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      background-image:
+        linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: var(--text);
+      line-height: 1.65;
+      transition: var(--transition);
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      margin-top: 0;
+    }
+
+    .editorial-font { font-family: 'Fraunces', Georgia, serif; font-style: italic; }
+
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    a { text-decoration: none; transition: var(--transition); color: var(--primary); }
+    a:hover { color: var(--primary-light); }
+
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+    /* ---- Top Nav ---- */
+    header.topbar {
+      position: sticky; top: 0; z-index: 100;
+      background: color-mix(in srgb, var(--bg) 85%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .topbar-inner {
+      max-width: 1140px; margin: 0 auto; padding: 14px 24px;
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+    }
+    .logo-container { display: flex; align-items: center; gap: 12px; }
+    .logo-badge {
+      background: var(--primary); color: #fff; font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif; padding: 6px 12px;
+      border-radius: 6px; font-size: 14px; letter-spacing: 0.05em;
+    }
+    .logo-text h2 { font-size: 17px; margin: 0; line-height: 1; }
+    .logo-text p { margin: 3px 0 0; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .pill-link, .theme-toggle-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--card); border: 1px solid var(--card-border);
+      color: var(--navy); padding: 8px 16px; border-radius: 30px;
+      cursor: pointer; font-size: 13px; font-weight: 600;
+      box-shadow: var(--shadow); transition: var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
+    .pill-link:hover, .theme-toggle-btn:hover { border-color: var(--primary); transform: translateY(-2px); color: var(--navy); }
+
+    /* ---- Hero ---- */
+    .hero { text-align: center; padding: 70px 0 30px; }
+    .hero-tag {
+      display: inline-block; background: var(--primary-glow); color: var(--primary);
+      border: 1px solid rgba(244, 121, 32, 0.3); font-size: 12px; font-weight: 600;
+      padding: 6px 16px; border-radius: 20px; letter-spacing: 0.05em;
+      text-transform: uppercase; margin-bottom: 24px;
+    }
+    body.light-theme .hero-tag { background: var(--badge-bg); border-color: var(--border); }
+    .hero h1 { font-size: 46px; line-height: 1.1; margin: 0 auto 18px; max-width: 880px; }
+    .hero p.lede { font-size: 18px; color: var(--muted); max-width: 720px; margin: 0 auto; }
+    .hero .meta { font-size: 13px; color: var(--muted); margin-top: 18px; }
+    .hero .meta b { color: var(--navy); }
+
+    /* ---- Section nav (sticky pill bar) ---- */
+    .section-nav {
+      position: sticky; top: 64px; z-index: 90;
+      display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;
+      padding: 14px 0; margin: 24px 0 10px;
+      background: color-mix(in srgb, var(--bg) 80%, transparent);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    }
+    .section-nav a {
+      font-size: 12.5px; font-weight: 600; color: var(--muted);
+      padding: 6px 13px; border-radius: 20px; border: 1px solid transparent;
+    }
+    .section-nav a:hover { color: var(--navy); background: var(--badge-bg); }
+    .section-nav a.active { color: var(--primary); border-color: rgba(244,121,32,0.35); background: var(--primary-glow); }
+
+    /* ---- Sections ---- */
+    section.block { padding: 54px 0 10px; }
+    .eyebrow {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--primary); margin-bottom: 10px;
+    }
+    section.block > .container > h2 { font-size: 32px; margin-bottom: 14px; }
+    .section-lede { font-size: 16px; color: var(--muted); max-width: 760px; margin: 0 0 32px; }
+
+    .panel {
+      background: var(--card); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 32px; box-shadow: var(--shadow); margin-bottom: 24px;
+    }
+    .panel h3 { font-size: 20px; margin-bottom: 12px; }
+    .panel h4 { font-size: 15px; margin: 18px 0 8px; color: var(--navy); }
+    .panel p { margin: 0 0 14px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .callout {
+      border-left: 3px solid var(--primary); background: var(--primary-glow);
+      padding: 16px 20px; border-radius: 0 10px 10px 0; margin: 0 0 20px;
+      font-size: 14.5px;
+    }
+    .callout.indigo { border-left-color: var(--indigo); background: var(--indigo-glow); }
+    .callout.green { border-left-color: var(--green); background: var(--green-glow); }
+    .callout b { color: var(--navy); }
+
+    /* ---- Tables ---- */
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 560px; }
+    thead th {
+      background: var(--badge-bg); color: var(--navy); text-align: left;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px;
+      text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: color-mix(in srgb, var(--badge-bg) 50%, transparent); }
+    td code, p code, li code { background: var(--badge-bg); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; color: var(--primary-light); }
+    body.light-theme td code, body.light-theme p code, body.light-theme li code { color: var(--terracotta); }
+
+    /* ---- Tag chips ---- */
+    .chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 5px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+    .chip.hot { background: rgba(244,121,32,0.15); color: var(--primary-light); }
+    .chip.gated { background: var(--indigo-glow); color: #a5b4fc; }
+    .chip.live { background: var(--green-glow); color: #34d399; }
+    .chip.auto { background: var(--green-glow); color: #34d399; }
+    .chip.propose { background: rgba(245,158,11,0.15); color: var(--amber); }
+    body.light-theme .chip.hot { background: #ffebd5; color: #ea580c; }
+    body.light-theme .chip.gated { background: #e0e7ff; color: #4f46e5; }
+    body.light-theme .chip.live, body.light-theme .chip.auto { background: #d1fae5; color: #059669; }
+    body.light-theme .chip.propose { background: #fef3c7; color: #b45309; }
+
+    /* ---- Knowledge type explorer ---- */
+    .kt-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+    .kt-tab {
+      background: var(--badge-bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 16px; cursor: pointer; text-align: left; color: var(--text);
+      transition: var(--transition); flex: 1 1 170px; min-width: 150px;
+    }
+    .kt-tab:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .kt-tab.active { background: var(--primary-glow); border-color: var(--primary); }
+    .kt-tab .num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--primary); font-weight: 600; }
+    .kt-tab .name { display: block; font-weight: 600; color: var(--navy); font-size: 14px; margin-top: 4px; }
+    .kt-tab .rgm { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+    .kt-body { display: none; }
+    .kt-body.active { display: block; animation: fade 0.35s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform:none;} }
+    .kt-meta-grid { display: grid; grid-template-columns: 140px 1fr; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .kt-meta-grid > div { padding: 11px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .kt-meta-grid > div:nth-child(odd) { background: var(--badge-bg); font-weight: 600; color: var(--navy); font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .kt-meta-grid > div:nth-last-child(-n+2) { border-bottom: none; }
+    @media (max-width: 620px) { .kt-meta-grid { grid-template-columns: 1fr; } .kt-meta-grid > div:nth-child(odd){ border-bottom: none; } }
+
+    /* ---- Code blocks ---- */
+    pre.code {
+      background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 20px; overflow-x: auto; font-size: 13px; line-height: 1.6;
+      color: #e2e8f0; margin: 0 0 20px;
+    }
+    pre.code .c { color: #6b7a90; }     /* comment */
+    pre.code .k { color: var(--primary-light); }  /* keyword */
+    pre.code .t { color: #7dd3fc; }     /* type/table */
+    body.light-theme pre.code { color: #e2e8f0; }
+
+    pre.ascii {
+      background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 22px; overflow-x: auto; font-size: 12px; line-height: 1.45;
+      color: #9fb3c8; margin: 0 0 8px; white-space: pre;
+    }
+
+    /* ---- Toggle demo ---- */
+    .toggle-demo { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: stretch; }
+    @media (max-width: 720px) { .toggle-demo { grid-template-columns: 1fr; } }
+    .switch-row { display: flex; align-items: center; gap: 14px; margin: 14px 0; }
+    .switch {
+      position: relative; width: 52px; height: 28px; border-radius: 20px;
+      background: var(--border); cursor: pointer; transition: var(--transition); flex-shrink: 0;
+    }
+    .switch::after { content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; transition: var(--transition); box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+    .switch.on { background: var(--green); }
+    .switch.on::after { left: 27px; }
+    .switch-label { font-weight: 600; color: var(--navy); font-size: 14px; }
+    .switch-sub { font-size: 12px; color: var(--muted); }
+    .demo-out {
+      background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px;
+      padding: 18px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #cbd5e1;
+    }
+    .demo-out .line { margin: 0 0 7px; }
+    .demo-out .tag { color: var(--primary); font-weight: 600; }
+    .demo-out .val { color: #7dd3fc; }
+
+    /* ---- Milestone cards ---- */
+    .ms { border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 18px; background: var(--card-2); }
+    .ms-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+    .ms-head .mnum { font-family: 'JetBrains Mono', monospace; color: var(--primary); font-weight: 700; font-size: 13px; }
+    .ms-head h4 { margin: 0; font-size: 18px; }
+    .ms-out { font-size: 14px; color: var(--muted); margin: 4px 0 14px; }
+    .ms-gate { font-size: 13px; margin-top: 12px; padding: 12px 16px; border-radius: 8px; background: var(--badge-bg); border-left: 3px solid var(--amber); }
+    .ms-gate b { color: var(--navy); }
+
+    .two-col-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px; }
+    @media (max-width: 720px) { .two-col-list { grid-template-columns: 1fr; } }
+    ul.clean { list-style: none; padding: 0; margin: 0; }
+    ul.clean li { padding: 7px 0 7px 26px; position: relative; font-size: 14.5px; border-bottom: 1px dashed var(--border); }
+    ul.clean li:last-child { border-bottom: none; }
+    ul.clean li::before { content: '▸'; position: absolute; left: 4px; color: var(--primary); }
+
+    /* ---- Source files ---- */
+    .files-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; }
+    .file-card { display: flex; gap: 14px; align-items: flex-start; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: var(--transition); }
+    .file-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+    .file-ico { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; padding: 6px 8px; border-radius: 6px; background: var(--primary-glow); color: var(--primary); flex-shrink: 0; }
+    .file-card .fname { font-weight: 600; color: var(--navy); font-size: 14px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+    .file-card .fdesc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    footer.foot { border-top: 1px solid var(--border); margin-top: 60px; padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
+    footer.foot b { color: var(--navy); }
+
+    @media (max-width: 700px) {
+      .hero h1 { font-size: 32px; }
+      .logo-text { display: none; }
+      section.block > .container > h2 { font-size: 25px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== Top nav ===== -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo-container">
+        <div class="logo-badge">RAG</div>
+        <div class="logo-text">
+          <h2>RAG Loading &amp; Tuning Add-On</h2>
+          <p>Creation · Loading · Eviction · Adaptive Tuning</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <a class="pill-link" href="index.html">⌂ Portal</a>
+        <button class="theme-toggle-btn" onclick="toggleTheme()">
+          <span id="themeIcon">☀️</span><span id="themeText">Light Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== Hero ===== -->
+  <div class="container">
+    <section class="hero">
+      <div class="hero-tag">RAG Creation &amp; Tuning Add-On • v1.1.0</div>
+      <h1>How knowledge <span class="editorial-font">enters, refreshes, and exits</span> the RAG</h1>
+      <p class="lede">The concrete, locked design for creating and maintaining the Anvizent RAG: five knowledge types across three loading regimes, a Postgres + pgvector store, first-class eviction, and a configuration layer that tunes itself from telemetry — added to an existing RAG without rebuilding it.</p>
+      <div class="meta">Author: <b>Anvizent AI Team</b> &nbsp;•&nbsp; Status: <b>Locked platform choices</b> &nbsp;•&nbsp; Companion to the Storage Strategy &amp; Technical Reference</div>
+    </section>
+  </div>
+
+  <!-- ===== Section nav ===== -->
+  <nav class="section-nav" id="sectionNav">
+    <a href="#overview">Overview</a>
+    <a href="#regimes">Loading Regimes</a>
+    <a href="#types">Knowledge Types</a>
+    <a href="#shared">Shared &amp; Locked</a>
+    <a href="#tuning">Adaptive Tuning</a>
+    <a href="#architecture">Add-On Architecture</a>
+    <a href="#schema">Database Schema</a>
+    <a href="#buildplan">Build Plan</a>
+    <a href="#sources">Source Files</a>
+  </nav>
+
+  <!-- ===== Overview ===== -->
+  <section class="block" id="overview">
+    <div class="container">
+      <div class="eyebrow">Scope &amp; Principle</div>
+      <h2>An add-on, not a rebuild</h2>
+      <p class="section-lede">The existing RAG is treated as a substrate that stays almost untouched. The add-on attaches through three seams and otherwise runs out of band — so it can never take the core RAG down.</p>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Design principle: minimal-touch, fail-open</h3>
+          <p>The add-on requires exactly <b>two code changes</b> inside the existing RAG; everything else wraps the write path or runs as out-of-band workers.</p>
+          <div class="callout"><b>Fail-open guarantee.</b> If the control plane is unavailable, the resolver returns last-known / default values and retrieval keeps working. The add-on can degrade, but it cannot break the core RAG.</div>
+        </div>
+        <div class="panel">
+          <h3>What it adds</h3>
+          <ul class="clean">
+            <li><b>Loading orchestration</b> — the right regime for each knowledge type</li>
+            <li><b>Eviction / hygiene</b> — the index can't fill with stale, confidently-retrieved knowledge</li>
+            <li><b>Configuration</b> — every calibration knob is a live, audited config record</li>
+            <li><b>Adaptive tuning</b> — a controller moves knobs within bounds from telemetry</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Loading regimes ===== -->
+  <section class="block" id="regimes">
+    <div class="container">
+      <div class="eyebrow">Organizing principle</div>
+      <h2>Three loading regimes</h2>
+      <p class="section-lede">The recurring failure mode is conflating these. Hot loops optimize for latency and auto-write; curated loads optimize for review and versioning; live retrieval must never be embedded at all, or the index rots as schemas drift.</p>
+      <div class="panel" style="padding:18px;">
+        <div class="table-wrap" style="margin-bottom:0;border:none;">
+          <table>
+            <thead><tr><th>Regime</th><th>Latency</th><th>Write path</th><th>Failure cost</th><th>Types</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="chip hot">Hot / event-driven</span></td>
+                <td>Real-time to seconds</td>
+                <td>Automatic on event</td>
+                <td>Self-correcting (decays out)</td>
+                <td>Patterns, Customizations</td>
+              </tr>
+              <tr>
+                <td><span class="chip gated">Gated / curated</span></td>
+                <td>Release cadence</td>
+                <td>Human-reviewed</td>
+                <td>High — poisons every downstream generation</td>
+                <td>Semantics, Structural-doc corpus</td>
+              </tr>
+              <tr>
+                <td><span class="chip live">Live retrieval</span></td>
+                <td>Query-time</td>
+                <td>No write to vector store</td>
+                <td>Stale snapshot</td>
+                <td>Live source schema</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Knowledge types ===== -->
+  <section class="block" id="types">
+    <div class="container">
+      <div class="eyebrow">The five knowledge types</div>
+      <h2>What gets loaded, and how</h2>
+      <p class="section-lede">Each type names its source, trigger, transform, namespace, refresh, and — critically — its eviction rule. Select a type to inspect its loading contract.</p>
+
+      <div class="panel">
+        <div class="kt-tabs" id="ktTabs">
+          <div class="kt-tab active" data-kt="1a"><span class="num">TYPE 1a</span><span class="name">Structural doc corpus</span><span class="rgm">Gated · indexed</span></div>
+          <div class="kt-tab" data-kt="1b"><span class="num">TYPE 1b</span><span class="name">Live source schema</span><span class="rgm">Live · never indexed</span></div>
+          <div class="kt-tab" data-kt="2"><span class="num">TYPE 2</span><span class="name">Integration patterns</span><span class="rgm">Hot · self-improving</span></div>
+          <div class="kt-tab" data-kt="3"><span class="num">TYPE 3</span><span class="name">Business semantics</span><span class="rgm">Gated · human-curated</span></div>
+          <div class="kt-tab" data-kt="4"><span class="num">TYPE 4</span><span class="name">Customer customizations</span><span class="rgm">Hot · tenant-scoped</span></div>
+          <div class="kt-tab" data-kt="5"><span class="num">TYPE 5</span><span class="name">Telemetry feedback</span><span class="rgm">Hot · platform-generated</span></div>
+        </div>
+
+        <div class="kt-body active" data-kt="1a">
+          <h3>Type 1a — Source-system structural knowledge <span class="chip gated">Gated</span></h3>
+          <p>The indexed half of Type 1. Split from the live track because the live/static distinction is what keeps the index from rotting.</p>
+          <div class="kt-meta-grid">
+            <div>Source</div><div>Vendor data dictionaries, OpenAPI / API specs, published ERDs, internal connector docs.</div>
+            <div>Trigger</div><div>SOR onboarding; vendor structural version release.</div>
+            <div>Transform</div><div>Parse → section-aware chunk → embed → tag (<code>system</code>, <code>version</code>, <code>object_type</code>).</div>
+            <div>Namespace</div><div><code>kb:sor-docs:{system}:{version}</code></div>
+            <div>Refresh</div><div>On vendor version bump; periodic audit for drift between docs and observed reality.</div>
+            <div>Eviction</div><div>Version-supersede. Prior version deprecated, retained while any pipeline is pinned to it, hard-deleted once no pins remain.</div>
+          </div>
+        </div>
+
+        <div class="kt-body" data-kt="1b">
+          <h3>Type 1b — Live source schema <span class="chip live">Never indexed</span></h3>
+          <p>Held as structured, cached metadata — never written into the vector store. Embedding it would rot the index as schemas drift.</p>
+          <div class="kt-meta-grid">
+            <div>Source</div><div>Connector introspection via the metadata service.</div>
+            <div>Trigger</div><div>Query-time assembly; schema-drift webhook.</div>
+            <div>Transform</div><div>None into the vector store — held as structured, cached metadata.</div>
+            <div>Namespace</div><div>Metadata-service cache, <b>not</b> the vector index.</div>
+            <div>Refresh</div><div>Short TTL plus drift-triggered invalidation.</div>
+            <div>Eviction</div><div>Cache expiry; a drift event invalidates immediately.</div>
+          </div>
+        </div>
+
+        <div class="kt-body" data-kt="2">
+          <h3>Type 2 — Integration &amp; reconciliation patterns <span class="chip hot">Hot</span></h3>
+          <p>The self-improving loop. Has to run hot. Tenant data must be redacted <i>before</i> promotion to the global namespace.</p>
+          <div class="kt-meta-grid">
+            <div>Source</div><div>Successfully deployed pipeline JSON specs; spec-library commits; curated canonical Silver templates.</div>
+            <div>Trigger</div><div>Deployment-success event; spec commit; manual template publish.</div>
+            <div>Transform</div><div>Extract pattern signature (source pair, transform graph, reconciliation rules) → <b>scrub tenant-specific values</b> → generalize → embed → tag (<code>industry</code>, <code>source_systems</code>, <code>pattern_class</code>).</div>
+            <div>Namespace</div><div><code>kb:patterns:global</code></div>
+            <div>Refresh</div><div>Continuous / event-driven on successful deployment.</div>
+            <div>Eviction</div><div>Combined decay — deprecated when failure rate crosses the cutoff <b>or</b> selection count over the rolling window drops to disuse; explicit deprecate on breaking schema change.</div>
+          </div>
+        </div>
+
+        <div class="kt-body" data-kt="3">
+          <h3>Type 3 — Business semantics &amp; metrics <span class="chip gated">Gated</span></h3>
+          <p>Powers the metrics-suggestion agent. Must stay human-gated so the agent never manufactures consensus from a handful of tenants.</p>
+          <div class="kt-meta-grid">
+            <div>Source</div><div>Curated industry glossaries authored by the team; seeded from industry docs; <i>suggestions</i> surfaced from observed customer metric definitions.</div>
+            <div>Trigger</div><div>Gated curated version release; vertical onboarding.</div>
+            <div>Transform</div><div>Author → review/approve → version → embed with definition, formula, <code>industry</code> tag, synonyms. Customer-surfaced definitions accumulate in a <b>batch-proposed-diff</b> queue reviewed as a set.</div>
+            <div>Namespace</div><div><code>kb:semantics:{industry}:{version}</code></div>
+            <div>Refresh</div><div>Periodic, human-approved releases; suggestion queue reviewed in batches.</div>
+            <div>Eviction</div><div>Version-supersede. Corrected definitions replace prior; prior retained read-only for lineage.</div>
+          </div>
+          <div class="callout indigo" style="margin-top:18px;"><b>Guardrail.</b> Observed customer definitions may <i>suggest</i> additions but never auto-write into the canonical glossary.</div>
+        </div>
+
+        <div class="kt-body" data-kt="4">
+          <h3>Type 4 — Customer customizations <span class="chip hot">Hot · tenant-scoped</span></h3>
+          <p>Isolation is non-negotiable. Physical database-level isolation, not a query-time filter — retrieval cannot reach across tenants by construction.</p>
+          <div class="kt-meta-grid">
+            <div>Source</div><div>Customer overrides to generated artifacts — renames, custom business rules, transform tweaks.</div>
+            <div>Trigger</div><div>Save / commit on a customer artifact.</div>
+            <div>Transform</div><div>Diff against generated baseline → capture delta → embed → tenant-tag.</div>
+            <div>Namespace</div><div>Dedicated Postgres database per tenant; customizations live in a <code>custom</code> table within the tenant DB.</div>
+            <div>Refresh</div><div>Real-time on save.</div>
+            <div>Eviction</div><div>Revert removes the entry; re-edit supersedes; tenant offboarding is a single <code>DROP DATABASE</code>.</div>
+          </div>
+        </div>
+
+        <div class="kt-body" data-kt="5">
+          <h3>Type 5 — Operational telemetry feedback <span class="chip hot">Hot</span></h3>
+          <p>The only type generated by the platform itself. Never load raw events — distill first.</p>
+          <div class="kt-meta-grid">
+            <div>Source</div><div>Processing-engine run telemetry — success/failure, performance, data-quality outcomes, bias-detection results.</div>
+            <div>Trigger</div><div>Micro-batch window close (rolling, hourly to daily).</div>
+            <div>Transform</div><div><b>Hybrid (rules → LLM).</b> Rules do the deterministic gate — aggregate, threshold, filter to actual signal — then an LLM phrases only the survivors into <code>condition → outcome</code> insight statements. The LLM never sees runs that didn't clear the gate.</div>
+            <div>Namespace</div><div>Global insights in <code>kb:telemetry-insights:global</code>; tenant-specific failure modes in the tenant DB.</div>
+            <div>Refresh</div><div>Micro-batch on a rolling window.</div>
+            <div>Eviction</div><div>Confidence / time decay — insights age out as conditions change; superseded when contradicted by a newer aggregate.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Shared + locked ===== -->
+  <section class="block" id="shared">
+    <div class="container">
+      <div class="eyebrow">Cross-cutting</div>
+      <h2>Shared infrastructure &amp; locked decisions</h2>
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Shared infrastructure</h3>
+          <ul class="clean">
+            <li><b>Embedding-model versioning.</b> Stamp the model version into every record; changing the model means a re-embed pass. Mismatched-model vectors retrieved together degrade silently.</li>
+            <li><b>Common metadata schema.</b> Every record carries <code>type</code>, <code>source</code>, <code>tenant_scope</code>, <code>embed_model_version</code>, <code>created_at</code>, <code>supersedes</code>.</li>
+            <li><b>Tenant isolation.</b> Database-per-tenant for Type 4 + tenant telemetry; redaction-before-promotion for Type 2 + global telemetry; global-by-construction for Types 1a and 3.</li>
+            <li><b>Eviction as first-class.</b> Every type names a supersede/decay rule — without it the index fills with confidently-retrieved stale knowledge.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Locked decisions</h3>
+          <ul class="clean">
+            <li><b>Store:</b> Postgres + pgvector — vectors next to relational metadata, no separate infra.</li>
+            <li><b>Type 4 isolation:</b> Database-per-tenant; <code>DROP DATABASE</code> offboarding; tenant→DB control-plane catalog.</li>
+            <li><b>Type 5 distillation:</b> Hybrid — rules gate, LLM phrases survivors.</li>
+            <li><b>Type 5 scope:</b> Both global and tenant insights; tenant→global requires scrub + generalize.</li>
+            <li><b>Type 2 decay:</b> Combined failure-rate <b>and</b> disuse triggers.</li>
+            <li><b>Type 3 intake:</b> Batch-proposed-diff review queue.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Adaptive tuning ===== -->
+  <section class="block" id="tuning">
+    <div class="container">
+      <div class="eyebrow">Configuration &amp; adaptive tuning</div>
+      <h2>Calibration knobs are first-class config</h2>
+      <p class="section-lede">Not deferred decisions — every tunable is a config record with two control paths: <b>manual override</b> by advanced users and <b>telemetry-driven auto-tuning</b> by a controller that reuses the Type 5 distillation stream. The same loop that feeds RAG insights also feeds the tuner.</p>
+
+      <div class="panel">
+        <h3>Parameter registry</h3>
+        <p>Every tunable is a record: <code>key</code>, <code>default</code>, <code>bounds</code>, <code>scope</code>, <code>learning_enabled</code>, <code>apply_behavior</code>, <code>current_value</code>, <code>source</code>, <code>last_changed_by</code>, <code>justifying_window</code>. Defaults below are placeholders to be set from real traffic.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Parameter</th><th>Default*</th><th>Bounds</th><th>Scope</th><th>Apply</th><th>Learning signal</th></tr></thead>
+            <tbody>
+              <tr><td>Live-schema cache TTL (1b)</td><td>15 min</td><td>1 min–24 h</td><td>global + tenant</td><td><span class="chip auto">auto</span></td><td>schema-drift event frequency</td></tr>
+              <tr><td>Pattern failure-rate cutoff (2)</td><td>fleet p90</td><td>5%–50%</td><td>global</td><td><span class="chip auto">auto</span></td><td>rolling pattern failure distribution</td></tr>
+              <tr><td>Pattern disuse window (2)</td><td>90 d / N selections</td><td>tunable</td><td>global</td><td><span class="chip auto">auto</span></td><td>selection-count distribution</td></tr>
+              <tr><td>Telemetry batch window (5)</td><td>6 h</td><td>1 h–24 h</td><td>global</td><td><span class="chip auto">auto</span></td><td>run volume per window</td></tr>
+              <tr><td>Retrieval top-k</td><td>8</td><td>3–20</td><td>global + tenant</td><td><span class="chip auto">auto</span></td><td>retrieved-context-used-in-success rate</td></tr>
+              <tr><td>Similarity threshold</td><td>0.75</td><td>0.5–0.95</td><td>global + tenant</td><td><span class="chip auto">auto</span></td><td>precision of retrieved chunks</td></tr>
+              <tr><td>Chunk size / overlap (1a, 2)</td><td>800 / 100 tok</td><td>tunable</td><td>global</td><td><span class="chip propose">propose</span></td><td>retrieval usefulness (re-embed)</td></tr>
+              <tr><td>Embedding model</td><td>locked choice</td><td>allowed set</td><td>global</td><td><span class="chip propose">propose</span></td><td>A/B retrieval quality (re-embed)</td></tr>
+              <tr><td>Reranker on/off + model</td><td>on</td><td>model set</td><td>global + tenant</td><td><span class="chip auto">auto</span></td><td>rerank lift on generation success</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="font-size:13px;color:var(--muted);margin:0;">*Illustrative — set empirically.</p>
+      </div>
+
+      <div class="panel">
+        <h3>Control: one check per parameter</h3>
+        <p>The user-facing control is a single toggle per parameter — <b>Locked (manual)</b> or <b>Learning-based</b> — not three modes to reason about. Whether a learning-based change applies on its own or waits for sign-off is the parameter's own <code>apply_behavior</code>, not a third choice the user makes.</p>
+        <div class="toggle-demo">
+          <div>
+            <div class="switch-row">
+              <div class="switch on" id="sw1" onclick="flip('sw1')"></div>
+              <div><div class="switch-label">Retrieval top-k</div><div class="switch-sub" id="sw1sub">Learning-based · auto-apply</div></div>
+            </div>
+            <div class="switch-row">
+              <div class="switch on" id="sw2" onclick="flip('sw2')"></div>
+              <div><div class="switch-label">Embedding model</div><div class="switch-sub" id="sw2sub">Learning-based · propose-for-approval (re-embed)</div></div>
+            </div>
+            <p style="font-size:13px;color:var(--muted);margin-top:18px;">Toggle a switch to see how the same one check produces correct blast-radius behavior underneath.</p>
+          </div>
+          <div class="demo-out" id="demoOut"></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Precedence &amp; scope</h3>
+          <div class="callout"><code>user lock &gt; learned value &gt; default</code></div>
+          <p>Locking a parameter (unchecking learning) pins it; checking learning hands control back to the controller within bounds. Scope is global by default; per-tenant overrides live in the tenant's own database, so a tenant with unusual data can be tuned — or locked — without touching the fleet.</p>
+        </div>
+        <div class="panel">
+          <h3>The tuning controller (reuses Type 5)</h3>
+          <ol style="margin:0;padding-left:20px;font-size:14.5px;">
+            <li>Compares the live objective against target.</li>
+            <li>Proposes a bounded delta.</li>
+            <li>Shadow- or A/B-evaluates before fleet-wide apply.</li>
+            <li>Auto-rolls-back if the objective regresses.</li>
+            <li>Never touches locked params; never exceeds bounds; rate-limited per interval.</li>
+          </ol>
+          <div class="callout green" style="margin-top:16px;"><b>Auditability.</b> Every change is a versioned config event with who/what changed it and the <code>justifying_window</code> behind a learned change. You can always answer "why is top-k 11 right now" and roll back.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Add-on architecture ===== -->
+  <section class="block" id="architecture">
+    <div class="container">
+      <div class="eyebrow">Implementation architecture</div>
+      <h2>Three seams, one brain</h2>
+      <p class="section-lede">The control plane is new; the existing RAG is reused. The add-on attaches through a write seam, a read seam, and a telemetry seam — and the read seam is the only place existing code changes.</p>
+
+      <div class="panel">
+        <h3>Layer map</h3>
+        <pre class="ascii">        ┌──────────────────────── CONTROL PLANE (new) ────────────────────────┐
+        │  Admin Console / API     Config Store (parameter registry)          │
+        │  Tuning Controller       Eviction / Hygiene worker                   │
+        │  Tenant → DB catalog                                                 │
+        └───────────▲───────────────────────▲─────────────────────▲───────────┘
+                    │ resolve config         │ apply / propose      │ distilled signal
+        READ SEAM   │            STORE access│            TELEMETRY │
+   ┌────────────────┼────────────────────────┼──────────────────────┼─────────────┐
+   │ WRITE SEAM     │      EXISTING RAG (substrate, reused)          │  OBSERVE     │
+   │                │                                                │             │
+   │ Loading        │   Ingestion ─► Embedding ─► pgvector           │  Telemetry  │
+   │ Orchestrator ──┼─►                          ▲                   │  Collector  │
+   │ + type adapters│   Retriever ◄──────────────┘                   │  + distill  │
+   │                │      │                                         │  (rules→LLM) │
+   │                │      ▼                                         │      ▲      │
+   │                │   Generator ───────── emits outcome ───────────┼──────┘      │
+   └────────────────┴────────────────────────────────────────────────┴────────────┘</pre>
+      </div>
+
+      <div class="panel">
+        <h3>Integration seams</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Seam</th><th>Where</th><th>Invasiveness</th><th>Contract</th></tr></thead>
+            <tbody>
+              <tr><td><b>Write</b></td><td>Wraps ingestion API</td><td>None to RAG internals</td><td><code>orchestrator.ingest(records[], metadata)</code> → existing <code>ingest()</code></td></tr>
+              <tr><td><b>Read</b></td><td>Inside retrieval path</td><td><span class="chip propose">Only invasive change</span> replace hardcoded constants with a resolver lookup</td><td><code>resolver.resolve(key, scope) → value</code> (cached, fail-open)</td></tr>
+              <tr><td><b>Telemetry</b></td><td>On generate / run completion</td><td>One emit call</td><td><code>collector.emit({outcome, retrieval_used, pattern_id, tenant, …})</code></td></tr>
+              <tr><td><b>Store</b></td><td>pgvector + tenant DBs</td><td>Out of band</td><td>Eviction predicates; tenant-DB connection routing</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-bottom:0;">The read seam is mechanical: swap constants for <code>resolve(...)</code>, wrapped in a small middleware so it's one edit, not many.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Runtime flows</h3>
+          <h4>Ingest</h4>
+          <p>Source event → Loading Orchestrator → type adapter transform (scrub / distill / chunk) → metadata stamp → existing ingestion API → pgvector. Live schema (1b) skips the store.</p>
+          <h4>Retrieve</h4>
+          <p>Query → retriever calls <code>resolver.resolve(top_k|threshold|reranker, scope)</code> → executes against pgvector (tenant DB if tenant-scoped) → generator.</p>
+          <h4>Tune</h4>
+          <p>Generator emits outcome → Collector → distillation → Controller compares objective to target → bounded proposal → (auto) write <code>current_value</code> + audit, or (propose) queue for Admin → Resolver cache invalidated.</p>
+          <h4>Evict</h4>
+          <p>Hygiene worker scans metadata → applies supersede / decay rules → deprecates or deletes vectors.</p>
+        </div>
+        <div class="panel">
+          <h3>Net-new vs. reused</h3>
+          <h4>Reused (no internal change)</h4>
+          <p>Embedding service, pgvector store, retriever, generator, ingestion API.</p>
+          <h4>Net-new</h4>
+          <p>Loading Orchestrator + type adapters, Telemetry Collector + distillation, Config Store, Config Resolver, Tuning Controller, Eviction worker, Tenant→DB catalog, Admin console.</p>
+          <div class="callout" style="margin-top:16px;">The only net-new component with no precedent in a standard RAG is the <b>Tuning Controller</b> — deliberately the last thing built, so the system is useful (manually configurable) well before it's autonomous.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Schema ===== -->
+  <section class="block" id="schema">
+    <div class="container">
+      <div class="eyebrow">Database layer</div>
+      <h2>Postgres + pgvector schema</h2>
+      <p class="section-lede">Two roles: a single <b>Control DB</b> (schema <code>control</code>) owning all configuration, audit, proposals, and catalogs; and a <b>Knowledge Store</b> (schema <code>kb</code>) deployed in one global database <i>and</i> one database per tenant.</p>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>(A) Control DB — schema <code>control</code></h3>
+          <ul class="clean">
+            <li><code>tunable_parameter</code> — the registry: one row per tunable, definition + default + bounds.</li>
+            <li><code>parameter_value</code> — effective values per scope; <code>learning_enabled</code> is the Locked/Learning check.</li>
+            <li><code>parameter_change_log</code> — append-only evidence substrate for rollback.</li>
+            <li><code>tuning_proposal</code> — pending proposals for <code>apply_behavior='propose'</code>.</li>
+            <li><code>tuning_run</code> — controller execution audit.</li>
+            <li><code>tenant_catalog</code> — tenant → database routing; secret referenced, not stored (BYOV).</li>
+            <li><code>embedding_model_version</code> — advisory swap + versioning.</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>(B) Knowledge Store — schema <code>kb</code></h3>
+          <ul class="clean">
+            <li><code>kb_chunk</code> — the vector table (write-mostly-once): <code>embedding vector(1536)</code>, <code>knowledge_type</code>, <code>namespace</code>, version chain via <code>supersedes</code> / <code>superseded_by</code>.</li>
+            <li><code>pattern_stats</code> — hot-updating 1:1 side table for Type 2; generated <code>failure_rate</code>; read by the eviction worker.</li>
+          </ul>
+          <div class="callout green" style="margin-top:14px;">Global DB holds <code>sor_doc</code>, <code>pattern</code>, <code>semantics</code>, global <code>telemetry_insight</code>. Tenant DB holds <code>customization</code> + tenant <code>telemetry_insight</code> — same <code>kb_chunk</code> shape, different physical database.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>Resolver function — effective value with precedence</h3>
+        <p>Resolution order: tenant override → global override → definition default. Precedence: <code>user lock &gt; learned/global value &gt; default</code>.</p>
+        <pre class="code"><span class="c">-- Precedence:  user lock &gt; learned/global value &gt; default.</span>
+<span class="k">CREATE OR REPLACE FUNCTION</span> resolve_parameter(p_key <span class="t">text</span>, p_tenant <span class="t">text</span> <span class="k">DEFAULT</span> NULL)
+<span class="k">RETURNS TABLE</span> (effective_value <span class="t">jsonb</span>, source value_source,
+               learning_enabled <span class="t">boolean</span>, locked <span class="t">boolean</span>)
+<span class="k">LANGUAGE</span> plpgsql STABLE <span class="k">AS</span> $$
+<span class="k">BEGIN</span>
+    <span class="c">-- tenant-scoped override</span>
+    <span class="k">IF</span> p_tenant <span class="k">IS NOT NULL THEN</span>
+        <span class="k">RETURN QUERY SELECT</span> pv.current_value, pv.source, pv.learning_enabled,
+               (pv.learning_enabled = false)
+        <span class="k">FROM</span> <span class="t">parameter_value</span> pv
+        <span class="k">WHERE</span> pv.param_key = p_key <span class="k">AND</span> pv.scope_type = 'tenant'
+               <span class="k">AND</span> pv.tenant_id = p_tenant;
+        <span class="k">IF FOUND THEN RETURN; END IF;</span>
+    <span class="k">END IF;</span>
+    <span class="c">-- global override, then definition default …</span>
+<span class="k">END;</span>
+$$;</pre>
+        <pre class="code"><span class="c">-- the vector table (cosine ANN via HNSW; partial per-type indexes)</span>
+<span class="k">CREATE TABLE</span> <span class="t">kb_chunk</span> (
+    id                  <span class="t">uuid</span> <span class="k">PRIMARY KEY DEFAULT</span> gen_random_uuid(),
+    knowledge_type      knowledge_type <span class="k">NOT NULL</span>,
+    namespace           <span class="t">text</span> <span class="k">NOT NULL</span>,        <span class="c">-- e.g. 'kb:patterns:global'</span>
+    content             <span class="t">text</span> <span class="k">NOT NULL</span>,
+    embedding           <span class="t">vector(1536)</span> <span class="k">NOT NULL</span>,  <span class="c">-- match embed_model_version dims</span>
+    embed_model_version <span class="t">text</span> <span class="k">NOT NULL</span>,
+    supersedes          <span class="t">uuid</span> <span class="k">REFERENCES</span> kb_chunk(id),  <span class="c">-- version chain</span>
+    superseded_by       <span class="t">uuid</span> <span class="k">REFERENCES</span> kb_chunk(id),
+    confidence          <span class="t">real</span>,                  <span class="c">-- telemetry_insight decay</span>
+    metadata            <span class="t">jsonb</span> <span class="k">NOT NULL DEFAULT</span> '{}'
+);
+<span class="k">CREATE INDEX</span> ix_chunk_ann <span class="k">ON</span> kb_chunk <span class="k">USING</span> hnsw (embedding vector_cosine_ops);</pre>
+        <p style="margin-bottom:0;">Full DDL — enums, indexes, <code>pattern_stats</code>, seed rows, and the offboarding notes — lives in <a href="anvizent-rag-addon-schema.sql">anvizent-rag-addon-schema.sql</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Build plan ===== -->
+  <section class="block" id="buildplan">
+    <div class="container">
+      <div class="eyebrow">Sequenced delivery</div>
+      <h2>Build plan</h2>
+      <p class="section-lede">Sequenced by value delivery and dependency, not calendar. <b>Ship Milestone 1 first and alone</b> — it delivers a manually tunable RAG and de-risks everything downstream. Each later milestone adds one capability without reworking the last.</p>
+
+      <div class="ms">
+        <div class="ms-head"><span class="mnum">M1</span><h4>Manually tunable RAG</h4></div>
+        <div class="ms-out">Every parameter is live-configurable by hand through the Admin console. Nothing self-tunes yet — the "advanced users can tweak" half works end to end.</div>
+        <ul class="clean two-col-list">
+          <li>Apply control-DB migration (the schema SQL)</li>
+          <li>Config Store API — CRUD + <code>resolve</code> over the SQL function</li>
+          <li>Config Resolver SDK — in-process cache, fail-open</li>
+          <li>Read-seam injection — swap constants behind one middleware</li>
+          <li>Admin console (minimal) — Locked/Learning check, set value, list</li>
+        </ul>
+        <div class="ms-gate"><b>Gate:</b> the <b>parameter inventory</b> — which constants in the retrieval path become tunable. A 1-hour decision that unblocks the milestone; get it wrong and the read-seam work churns.</div>
+      </div>
+
+      <div class="ms">
+        <div class="ms-head"><span class="mnum">M2</span><h4>Signal flowing</h4></div>
+        <div class="ms-out">Telemetry is collected and distilled into Type 5 insights landing in the store. Nothing acts on it yet, but the loop has fuel.</div>
+        <ul class="clean two-col-list">
+          <li>Telemetry seam — emit outcome on generate</li>
+          <li>Telemetry Collector + queue/topic</li>
+          <li>Distillation — rules gate → LLM phrasing → insight vectors</li>
+        </ul>
+        <div class="ms-gate"><b>Gate:</b> the rule-gate thresholds and the insight-statement schema — what counts as "signal." The intellectual core of Type 5; the code is trivial once defined.</div>
+      </div>
+
+      <div class="ms">
+        <div class="ms-head"><span class="mnum">M3</span><h4>Self-tuning</h4></div>
+        <div class="ms-out">The Locked/Learning check now <i>does</i> something. Auto-apply parameters move within bounds; propose parameters queue for approval.</div>
+        <ul class="clean two-col-list">
+          <li>Tuning Controller — objective compare, bounded delta, rate-limit</li>
+          <li>Shadow / A-B evaluation harness + auto-rollback</li>
+          <li>Proposal approval flow in Admin console</li>
+        </ul>
+        <div class="ms-gate"><b>Gate:</b> per-parameter objective functions and bounds. <b>Run the controller in shadow mode and watch it before enabling auto-apply</b> — that observation period is real calendar time and shouldn't be compressed.</div>
+      </div>
+
+      <div class="ms">
+        <div class="ms-head"><span class="mnum">M4</span><h4>Loading discipline (write seam)</h4></div>
+        <div class="ms-out">The five knowledge types flow through the orchestrator with correct metadata stamping, regimes, and tenant scoping.</div>
+        <ul class="clean two-col-list">
+          <li>Loading Orchestrator core — metadata stamp, ingestion wrap</li>
+          <li>Adapter: connector-metadata doc corpus (1a)</li>
+          <li>Adapter: live-schema cache, store-bypass (1b)</li>
+          <li>Adapter: pattern-capture hook on deploy-success (2)</li>
+          <li>Adapter: semantics batch-diff intake (3)</li>
+          <li>Adapter: customization capture-on-save (4)</li>
+        </ul>
+        <div class="ms-gate"><b>Gate:</b> adapters for patterns (2) and customizations (4) depend on hooks in the <i>existing platform</i> (deploy-success, artifact-save). Where those don't exist yet, that integration is the time sink — not the adapter code.</div>
+      </div>
+
+      <div class="ms">
+        <div class="ms-head"><span class="mnum">M5</span><h4>Hygiene + tenancy hardening</h4></div>
+        <div class="ms-out">The index can't rot, and database-per-tenant is operationally real.</div>
+        <ul class="clean two-col-list">
+          <li>Eviction / Hygiene worker — supersede/decay scans</li>
+          <li><code>pattern_stats</code> update path from telemetry</li>
+          <li>Tenant→DB catalog wiring, provisioning, fan-out</li>
+        </ul>
+        <div class="ms-gate"><b>Gate (infra):</b> tenant-DB provisioning is the <b>one genuinely multi-hour-to-day item</b> — connection pooling across many DBs, migration fan-out, provisioning/offboarding automation. The only place the hours-not-days rule bends.</div>
+      </div>
+
+      <div class="panel">
+        <h3>Parallelization</h3>
+        <p>Two independent tracks once Milestone 1 lands. They share only the schema (M1.1) and the telemetry collector (M2.2 feeds M5.2) — run them in parallel worktrees; they don't block each other.</p>
+        <div class="grid-2">
+          <div class="callout indigo"><b>Track A (tuning):</b> M2 → M3. Touches the read and telemetry seams.</div>
+          <div class="callout green"><b>Track B (loading/hygiene):</b> M4 → M5. Touches the write seam and the store.</div>
+        </div>
+        <p style="margin:8px 0 0;font-size:13.5px;color:var(--muted);">Steps M1–M2 alone deliver a manually tunable RAG; M3 makes it self-tuning; M4–M5 are loading discipline and hygiene. Calendar time is set by the design gates, the shadow-mode observation, the tenant-DB infra, and existing-platform hook availability — not by the coding.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Source files ===== -->
+  <section class="block" id="sources">
+    <div class="container">
+      <div class="eyebrow">Canonical source-of-truth</div>
+      <h2>Source artifacts</h2>
+      <p class="section-lede">This page renders the four canonical documents committed to the repo. The SQL is directly runnable; the markdown files are the authoritative specs.</p>
+      <div class="files-grid">
+        <a class="file-card" href="anvizent-rag-loading-spec.md">
+          <span class="file-ico">MD</span>
+          <span><span class="fname">anvizent-rag-loading-spec.md</span><span class="fdesc">Five knowledge types, three regimes, parameter registry, locked decisions.</span></span>
+        </a>
+        <a class="file-card" href="anvizent-rag-addon-architecture.md">
+          <span class="file-ico">MD</span>
+          <span><span class="fname">anvizent-rag-addon-architecture.md</span><span class="fdesc">Layer map, components, integration seams, runtime flows, deployment shape.</span></span>
+        </a>
+        <a class="file-card" href="anvizent-rag-addon-schema.sql">
+          <span class="file-ico">SQL</span>
+          <span><span class="fname">anvizent-rag-addon-schema.sql</span><span class="fdesc">Control DB + Knowledge Store DDL, enums, indexes, resolver function, seeds.</span></span>
+        </a>
+        <a class="file-card" href="anvizent-rag-addon-build-plan.md">
+          <span class="file-ico">MD</span>
+          <span><span class="fname">anvizent-rag-addon-build-plan.md</span><span class="fdesc">Five milestones, dependencies, gates, parallelization, effort rollup.</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="container">
+      <p>RAG Loading &amp; Tuning Add-On Architecture • v1.1.0 • Standard HTML5 / CSS3 / ES6</p>
+      <p style="font-size:11px;">Author: <b>Anvizent AI Team</b> • Companion to the Storage Strategy &amp; Technical Reference • Zero external dependencies (GitHub Pages-ready)</p>
+    </div>
+  </footer>
+
+  <script>
+    // ---- Theme ----
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-theme');
+      localStorage.setItem('portal-theme', isLight ? 'light' : 'dark');
+      updateThemeUI(isLight);
+    }
+    function applyThemePreference() {
+      const saved = localStorage.getItem('portal-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isLight = saved === 'light' || (!saved && !prefersDark);
+      document.body.classList.toggle('light-theme', isLight);
+      updateThemeUI(isLight);
+    }
+    function updateThemeUI(isLight) {
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeText');
+      if (icon && text) { icon.innerText = isLight ? '🌙' : '☀️'; text.innerText = isLight ? 'Dark Theme' : 'Light Theme'; }
+    }
+    applyThemePreference();
+
+    // ---- Knowledge type explorer ----
+    document.querySelectorAll('#ktTabs .kt-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const kt = tab.dataset.kt;
+        document.querySelectorAll('#ktTabs .kt-tab').forEach(t => t.classList.toggle('active', t === tab));
+        document.querySelectorAll('.kt-body').forEach(b => b.classList.toggle('active', b.dataset.kt === kt));
+      });
+    });
+
+    // ---- Locked/Learning toggle demo ----
+    const swState = {
+      sw1: { on: true, name: 'retrieval.top_k', behavior: 'auto' },
+      sw2: { on: true, name: 'embedding.model', behavior: 'propose' }
+    };
+    function flip(id) {
+      const sw = document.getElementById(id);
+      swState[id].on = !swState[id].on;
+      sw.classList.toggle('on', swState[id].on);
+      const sub = document.getElementById(id + 'sub');
+      if (id === 'sw1') sub.innerText = swState[id].on ? 'Learning-based · auto-apply' : 'Locked (manual) · user pins value';
+      if (id === 'sw2') sub.innerText = swState[id].on ? 'Learning-based · propose-for-approval (re-embed)' : 'Locked (manual) · user pins value';
+      renderDemo();
+    }
+    function renderDemo() {
+      const lines = [];
+      for (const id of ['sw1','sw2']) {
+        const s = swState[id];
+        if (!s.on) {
+          lines.push(`<div class="line"><span class="tag">${s.name}</span> → <span class="val">LOCKED</span></div>`);
+          lines.push(`<div class="line">  controller: off · manual value holds</div>`);
+        } else if (s.behavior === 'auto') {
+          lines.push(`<div class="line"><span class="tag">${s.name}</span> → <span class="val">LEARNING</span></div>`);
+          lines.push(`<div class="line">  controller moves value within bounds; writes current_value + audit</div>`);
+        } else {
+          lines.push(`<div class="line"><span class="tag">${s.name}</span> → <span class="val">LEARNING</span></div>`);
+          lines.push(`<div class="line">  controller files a PROPOSAL; human commits the re-embed swap</div>`);
+        }
+      }
+      lines.push(`<div class="line" style="margin-top:10px;color:#64748b;">precedence: user lock &gt; learned &gt; default</div>`);
+      document.getElementById('demoOut').innerHTML = lines.join('');
+    }
+    renderDemo();
+
+    // ---- Section nav active state ----
+    const navLinks = Array.from(document.querySelectorAll('#sectionNav a'));
+    const sections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const id = '#' + e.target.id;
+          navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id));
+        }
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sections.forEach(s => s && obs.observe(s));
+  </script>
+</body>
+</html>
