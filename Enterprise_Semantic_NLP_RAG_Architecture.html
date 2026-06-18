@@ -1143,6 +1143,93 @@
       </tbody>
     </table>
   </div>
+
+  <h3>7.8 semantic_synonyms</h3>
+  <div class="table-container">
+    <table class="small-table">
+      <thead><tr><th>canonical_term</th><th>synonyms</th></tr></thead>
+      <tbody>
+        <tr><td>Employee</td><td>Worker, Associate, Staff, Personnel</td></tr>
+        <tr><td>Revenue</td><td>Sales, Turnover, Earnings, Income</td></tr>
+        <tr><td>Absence</td><td>Leave, Time Off, Sick Day, Absenteeism</td></tr>
+        <tr><td>Discount</td><td>Markdown, Rebate, Price Reduction</td></tr>
+        <tr><td>Department</td><td>Division, Unit, Org Unit, Branch</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>7.9 semantic_kpi_definitions</h3>
+  <div class="table-container">
+    <table class="small-table">
+      <thead><tr><th>metric_name</th><th>formula</th><th>grain</th></tr></thead>
+      <tbody>
+        <tr><td>Absence Count</td><td>COUNT(absence_id)</td><td>Daily</td></tr>
+        <tr><td>Revenue</td><td>SUM(invoice_amount)</td><td>Monthly</td></tr>
+        <tr><td>Employee Count</td><td>COUNT(DISTINCT employee_id)</td><td>Daily</td></tr>
+        <tr><td>Discount Rate</td><td>AVG(discount_percentage)</td><td>Monthly</td></tr>
+        <tr><td>On-Hand Quantity</td><td>SUM(qty_on_hand)</td><td>Daily</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>7.10 semantic_data_quality_rules</h3>
+  <div class="table-container">
+    <table class="small-table">
+      <thead><tr><th>entity_name</th><th>attribute_name</th><th>dq_rule</th></tr></thead>
+      <tbody>
+        <tr><td>Employee</td><td>Employee ID</td><td>Not Null</td></tr>
+        <tr><td>Employee</td><td>Email</td><td>Valid Email Format</td></tr>
+        <tr><td>Revenue</td><td>Amount</td><td>&gt; 0</td></tr>
+        <tr><td>Discount</td><td>Discount Rate</td><td>Between 0 and 1</td></tr>
+        <tr><td>Inventory Position</td><td>On-Hand Quantity</td><td>Sorted non-negative (&gt;= 0)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>7.11 Analytical Data Warehouse (DWH) &amp; Data Marts (DM) Layer</h3>
+  <p>To serve deterministic analytics, conformed data is loaded into a target DWH Star Schema and aggregated as Data Mart consumption views:</p>
+  
+  <h4>dwh_dimensions_facts — Conformed DWH Schema</h4>
+  <div class="table-container">
+    <table class="small-table">
+      <thead><tr><th>table_name</th><th>table_type</th><th>column_name</th><th>is_pk</th><th>is_fk</th><th>referenced_table</th><th>datatype</th><th>description</th></tr></thead>
+      <tbody>
+        <tr><td>dim_employee</td><td>Dimension</td><td>employee_key</td><td>Yes</td><td>No</td><td>-</td><td>INTEGER</td><td>Surrogate primary key for employee dimension</td></tr>
+        <tr><td>dim_employee</td><td>Dimension</td><td>employee_id</td><td>No</td><td>No</td><td>-</td><td>VARCHAR</td><td>Source system employee unique ID</td></tr>
+        <tr><td>dim_employee</td><td>Dimension</td><td>employee_name</td><td>No</td><td>No</td><td>-</td><td>VARCHAR</td><td>Full name of the employee</td></tr>
+        <tr><td>fct_absences</td><td>Fact</td><td>absence_key</td><td>Yes</td><td>No</td><td>-</td><td>INTEGER</td><td>Surrogate key for facts</td></tr>
+        <tr><td>fct_absences</td><td>Fact</td><td>employee_key</td><td>No</td><td>Yes</td><td>dim_employee</td><td>INTEGER</td><td>FK linking to employee dimension</td></tr>
+        <tr><td>fct_absences</td><td>Fact</td><td>absence_date</td><td>No</td><td>No</td><td>-</td><td>DATE</td><td>Calendar date of the absence</td></tr>
+        <tr><td>fct_absences</td><td>Fact</td><td>absence_count</td><td>No</td><td>No</td><td>-</td><td>INTEGER</td><td>Absence unit count (1 for full day, etc.)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>dm_data_marts — Aggregate Consumption Views</h4>
+  <div class="table-container">
+    <table class="small-table">
+      <thead><tr><th>mart_name</th><th>target_view</th><th>column_name</th><th>source_fields</th><th>aggregation_logic</th></tr></thead>
+      <tbody>
+        <tr><td>dm_employee_absence</td><td>v_dm_employee_absence</td><td>department_name</td><td>dim_department.department_name</td><td>None (Group By)</td></tr>
+        <tr><td>dm_employee_absence</td><td>v_dm_employee_absence</td><td>absence_date</td><td>fct_absences.absence_date</td><td>None (Group By)</td></tr>
+        <tr><td>dm_employee_absence</td><td>v_dm_employee_absence</td><td>total_absences</td><td>fct_absences.absence_count</td><td>SUM(absence_count)</td></tr>
+        <tr><td>dm_employee_absence</td><td>v_dm_employee_absence</td><td>active_employee_count</td><td>dim_employee.employee_key</td><td>COUNT(DISTINCT employee_key)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>etl_lineage_jobs — Transformation Pipeline Mappings</h4>
+  <div class="table-container">
+    <table class="small-table">
+      <thead><tr><th>job_id</th><th>job_name</th><th>source_object</th><th>transformation_layer</th><th>target_dwh_table</th><th>dependency</th><th>load_type</th></tr></thead>
+      <tbody>
+        <tr><td>J01</td><td>extract_sfdc_absences</td><td>Salesforce.ABSENTCHART</td><td>L1 Raw Ingestion</td><td>stg_sf_absences</td><td>None</td><td>Incremental</td></tr>
+        <tr><td>J03</td><td>load_dim_employee</td><td>stg_sf_employees, stg_sap_employees</td><td>DWH Core Dim</td><td>dim_employee</td><td>J01, J02</td><td>UPSERT (SCD Type 1)</td></tr>
+        <tr><td>J05</td><td>load_fct_absences</td><td>stg_sf_absences, stg_sap_absences</td><td>DWH Core Fact</td><td>fct_absences</td><td>J03, J04</td><td>Incremental APPEND</td></tr>
+        <tr><td>J07</td><td>refresh_dm_employee_absence</td><td>dim_employee, dim_department, fct_absences</td><td>Data Mart View</td><td>dm_employee_absence</td><td>J05</td><td>On-Demand Refresh</td></tr>
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <!-- ============ 8. LAYER 4 ============ -->
