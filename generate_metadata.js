@@ -199,7 +199,7 @@ function generateXMLSpreadsheet(data) {
  xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
-  <Author>Anvizent AI Architecture Team</Author>
+  <Author>Naresh.Sanda (nareshkumar.sanda@gmail.com) - Senior Engineer &amp; Technical Architect</Author>
   <Created>${new Date().toISOString()}</Created>
  </DocumentProperties>
  <Styles>
