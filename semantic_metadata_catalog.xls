@@ -1,0 +1,317 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>Antigravity AI</Author>
+  <Created>2026-06-18T12:21:07.089Z</Created>
+ </DocumentProperties>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="HeaderStyle">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11" ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#0F172A" ss:Pattern="Solid"/>
+   <Alignment ss:Vertical="Center" ss:Horizontal="Center"/>
+  </Style>
+  <Style ss:ID="DataStyle">
+   <Font ss:FontName="Calibri" x:Family="Swiss" ss:Size="11"/>
+   <Borders>
+    <Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Top" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Left" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+    <Border ss:Position="Right" ss:LineStyle="Continuous" ss:Weight="1" ss:Color="#E2E8F0"/>
+   </Borders>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="L2_Standardized_Attributes">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Salesforce Column</Data></Cell>
+    <Cell><Data ss:Type="String">Epicor Column</Data></Cell>
+    <Cell><Data ss:Type="String">Priority Column</Data></Cell>
+    <Cell><Data ss:Type="String">SAP Column</Data></Cell>
+    <Cell><Data ss:Type="String">Snowflake Column</Data></Cell>
+    <Cell><Data ss:Type="String">Standard Business Attribute</Data></Cell>
+    <Cell><Data ss:Type="String">Datatype</Data></Cell>
+    <Cell><Data ss:Type="String">Confidence</Data></Cell>
+    <Cell><Data ss:Type="String">Reviewed By</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">ABSENCE_DATE</Data></Cell>
+    <Cell><Data ss:Type="String">ABS_DATE</Data></Cell>
+    <Cell><Data ss:Type="String">LEAVE_DT</Data></Cell>
+    <Cell><Data ss:Type="String">ABWTG</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENCE_DATE</Data></Cell>
+    <Cell><Data ss:Type="String">Absence Date</Data></Cell>
+    <Cell><Data ss:Type="String">DATE</Data></Cell>
+    <Cell><Data ss:Type="String">high</Data></Cell>
+    <Cell><Data ss:Type="String">catalog-steward@anvizent.com</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">EMP_ID</Data></Cell>
+    <Cell><Data ss:Type="String">EMPLOYEE_NUM</Data></Cell>
+    <Cell><Data ss:Type="String">EMP_NO</Data></Cell>
+    <Cell><Data ss:Type="String">PERNR</Data></Cell>
+    <Cell><Data ss:Type="String">EMPLOYEE_ID</Data></Cell>
+    <Cell><Data ss:Type="String">Employee ID</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">high</Data></Cell>
+    <Cell><Data ss:Type="String">catalog-steward@anvizent.com</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">AMOUNT</Data></Cell>
+    <Cell><Data ss:Type="String">INVOICE_AMT</Data></Cell>
+    <Cell><Data ss:Type="String">INV_AMT</Data></Cell>
+    <Cell><Data ss:Type="String">WRBTR</Data></Cell>
+    <Cell><Data ss:Type="String">NET_AMOUNT</Data></Cell>
+    <Cell><Data ss:Type="String">Revenue Amount</Data></Cell>
+    <Cell><Data ss:Type="String">DECIMAL</Data></Cell>
+    <Cell><Data ss:Type="String">high</Data></Cell>
+    <Cell><Data ss:Type="String">catalog-steward@anvizent.com</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">DEPT_NAME</Data></Cell>
+    <Cell><Data ss:Type="String">DEPT_DESC</Data></Cell>
+    <Cell><Data ss:Type="String">DEPT_NM</Data></Cell>
+    <Cell><Data ss:Type="String">IDGEH</Data></Cell>
+    <Cell><Data ss:Type="String">DEPARTMENT_NAME</Data></Cell>
+    <Cell><Data ss:Type="String">Department Name</Data></Cell>
+    <Cell><Data ss:Type="String">VARCHAR</Data></Cell>
+    <Cell><Data ss:Type="String">high</Data></Cell>
+    <Cell><Data ss:Type="String">catalog-steward@anvizent.com</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">SKU_QTY</Data></Cell>
+    <Cell><Data ss:Type="String">STOCK_QTY</Data></Cell>
+    <Cell><Data ss:Type="String">QTY_ON_HAND</Data></Cell>
+    <Cell><Data ss:Type="String">LABST</Data></Cell>
+    <Cell><Data ss:Type="String">ON_HAND_QTY</Data></Cell>
+    <Cell><Data ss:Type="String">Inventory On-Hand Quantity</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+    <Cell><Data ss:Type="String">high</Data></Cell>
+    <Cell><Data ss:Type="String">catalog-steward@anvizent.com</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Semantic_Entities">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Entity ID</Data></Cell>
+    <Cell><Data ss:Type="String">Entity Name</Data></Cell>
+    <Cell><Data ss:Type="String">Domain</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="Number">1001</Data></Cell>
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">Human Resources</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="Number">1002</Data></Cell>
+    <Cell><Data ss:Type="String">Employee</Data></Cell>
+    <Cell><Data ss:Type="String">Human Resources</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="Number">1003</Data></Cell>
+    <Cell><Data ss:Type="String">Department</Data></Cell>
+    <Cell><Data ss:Type="String">Human Resources</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="Number">1004</Data></Cell>
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Finance</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="Number">1005</Data></Cell>
+    <Cell><Data ss:Type="String">Opportunity</Data></Cell>
+    <Cell><Data ss:Type="String">Sales</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="Number">1006</Data></Cell>
+    <Cell><Data ss:Type="String">Discount</Data></Cell>
+    <Cell><Data ss:Type="String">Sales</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="Number">1007</Data></Cell>
+    <Cell><Data ss:Type="String">Inventory Position</Data></Cell>
+    <Cell><Data ss:Type="String">Inventory</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Source_Mappings">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Entity Name</Data></Cell>
+    <Cell><Data ss:Type="String">Source System</Data></Cell>
+    <Cell><Data ss:Type="String">Physical Object</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">Salesforce</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENTCHART</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">Epicor</Data></Cell>
+    <Cell><Data ss:Type="String">HR_ABSENCE</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">Priority</Data></Cell>
+    <Cell><Data ss:Type="String">EMP_ABS</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">SAP</Data></Cell>
+    <Cell><Data ss:Type="String">PA2001</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">Databricks</Data></Cell>
+    <Cell><Data ss:Type="String">DM_EMPLOYEE_ABSENCE</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Salesforce</Data></Cell>
+    <Cell><Data ss:Type="String">OPPORTUNITY</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Snowflake</Data></Cell>
+    <Cell><Data ss:Type="String">FCT_REVENUE</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Databricks</Data></Cell>
+    <Cell><Data ss:Type="String">DM_REVENUE</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Inventory Position</Data></Cell>
+    <Cell><Data ss:Type="String">Databricks</Data></Cell>
+    <Cell><Data ss:Type="String">DM_INVENTORY_POSITION</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Metrics">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Metric Name</Data></Cell>
+    <Cell><Data ss:Type="String">Entity Name</Data></Cell>
+    <Cell><Data ss:Type="String">Aggregation</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Absence Count</Data></Cell>
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">COUNT</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">SUM</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee Count</Data></Cell>
+    <Cell><Data ss:Type="String">Employee</Data></Cell>
+    <Cell><Data ss:Type="String">COUNT</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Discount Rate</Data></Cell>
+    <Cell><Data ss:Type="String">Discount</Data></Cell>
+    <Cell><Data ss:Type="String">AVG</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">On-Hand Quantity</Data></Cell>
+    <Cell><Data ss:Type="String">Inventory Position</Data></Cell>
+    <Cell><Data ss:Type="String">SUM</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Metric_Mappings">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Metric Name</Data></Cell>
+    <Cell><Data ss:Type="String">Source System</Data></Cell>
+    <Cell><Data ss:Type="String">Object</Data></Cell>
+    <Cell><Data ss:Type="String">Column</Data></Cell>
+    <Cell><Data ss:Type="String">Aggregation</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Absence Count</Data></Cell>
+    <Cell><Data ss:Type="String">Salesforce</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENTCHART</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENCE_ID</Data></Cell>
+    <Cell><Data ss:Type="String">COUNT</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Absence Count</Data></Cell>
+    <Cell><Data ss:Type="String">Epicor</Data></Cell>
+    <Cell><Data ss:Type="String">HR_ABSENCE</Data></Cell>
+    <Cell><Data ss:Type="String">ABS_ID</Data></Cell>
+    <Cell><Data ss:Type="String">COUNT</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Absence Count</Data></Cell>
+    <Cell><Data ss:Type="String">Priority</Data></Cell>
+    <Cell><Data ss:Type="String">EMP_ABS</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENCE_NO</Data></Cell>
+    <Cell><Data ss:Type="String">COUNT</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Absence Count</Data></Cell>
+    <Cell><Data ss:Type="String">Databricks</Data></Cell>
+    <Cell><Data ss:Type="String">DM_EMPLOYEE_ABSENCE</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENCE_COUNT</Data></Cell>
+    <Cell><Data ss:Type="String">SUM</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Salesforce</Data></Cell>
+    <Cell><Data ss:Type="String">OPPORTUNITY</Data></Cell>
+    <Cell><Data ss:Type="String">AMOUNT</Data></Cell>
+    <Cell><Data ss:Type="String">SUM</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Databricks</Data></Cell>
+    <Cell><Data ss:Type="String">DM_REVENUE</Data></Cell>
+    <Cell><Data ss:Type="String">REVENUE_AMOUNT</Data></Cell>
+    <Cell><Data ss:Type="String">SUM</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">On-Hand Quantity</Data></Cell>
+    <Cell><Data ss:Type="String">Databricks</Data></Cell>
+    <Cell><Data ss:Type="String">DM_INVENTORY_POSITION</Data></Cell>
+    <Cell><Data ss:Type="String">ON_HAND_QTY</Data></Cell>
+    <Cell><Data ss:Type="String">SUM</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Relationships">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Parent Entity</Data></Cell>
+    <Cell><Data ss:Type="String">Child Entity</Data></Cell>
+    <Cell><Data ss:Type="String">Relationship</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee</Data></Cell>
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">One-To-Many</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Department</Data></Cell>
+    <Cell><Data ss:Type="String">Employee</Data></Cell>
+    <Cell><Data ss:Type="String">One-To-Many</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+</Workbook>
