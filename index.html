@@ -208,7 +208,7 @@
     /* Document Showcase Cards */
     .doc-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 32px;
       margin-bottom: 60px;
     }
@@ -248,6 +248,11 @@
       background: linear-gradient(to right, var(--indigo), #818cf8);
     }
 
+    /* Storage Strategy Theme Styling for Card */
+    .doc-card.storage-theme::before {
+      background: linear-gradient(to right, var(--green), var(--indigo));
+    }
+
     .doc-card:hover {
       transform: translateY(-8px);
       box-shadow: var(--shadow-hover);
@@ -280,6 +285,15 @@
     body.light-theme .edit-theme .doc-card-badge {
       background: #e0e7ff;
       color: #4f46e5;
+    }
+
+    .storage-theme .doc-card-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+    body.light-theme .storage-theme .doc-card-badge {
+      background: #d1fae5;
+      color: #059669;
     }
 
     .doc-card h3 {
@@ -349,6 +363,16 @@
     .edit-theme .launch-btn:hover {
       background: #818cf8;
       box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+
+    .storage-theme li svg { color: var(--green); }
+    .storage-theme .launch-btn {
+      background: var(--green);
+      color: #fff;
+    }
+    .storage-theme .launch-btn:hover {
+      background: #34d399;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
     }
 
     /* Live Pipeline Status & Route Analyzer */
@@ -712,6 +736,37 @@
         </div>
         <a href="semantic_assistant_architecture.html" class="launch-btn">
           Open Editorial Brief ➔
+        </a>
+      </div>
+
+      <!-- Storage Strategy Portal Card -->
+      <div class="doc-card storage-theme">
+        <div>
+          <div class="doc-card-badge">Storage Strategy</div>
+          <h3>Metadata Database vs. Vector Store Spec</h3>
+          <p>Architectural blueprint defining what metadata resides in relational tables (for exact joins and schemas) vs. vector stores (for discovery and NLP queries).</p>
+          
+          <ul class="doc-features-list">
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Hybrid Metadata storage model guidelines</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Interactive Metadata Dispatcher Simulator</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Database DDL schemas &amp; DWH tables list</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Teal/Indigo modern glassmorphism panels</span>
+            </li>
+          </ul>
+        </div>
+        <a href="metadata_storage_architecture.html" class="launch-btn">
+          Open Storage Strategy ➔
         </a>
       </div>
 

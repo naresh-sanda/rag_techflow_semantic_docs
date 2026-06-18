@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metadata Storage Strategy — SQL vs. RAG Reference Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* Primary Colors */
+    --teal: #14b8a6;
+    --teal-glow: rgba(20, 184, 166, 0.08);
+    --indigo: #6366f1;
+    --indigo-light: #818cf8;
+    
+    /* Layout Colors (Light Mode) */
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #334155;
+    --navy: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    
+    /* Sidebar specific */
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #475569;
+    --sidebar-hover: #f1f5f9;
+    --sidebar-active-bg: rgba(99, 102, 241, 0.08);
+    --sidebar-active-text: #6366f1;
+    
+    /* Code specific */
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    
+    --radius: 10px;
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+    --shadow-hover: 0 10px 15px -3px rgba(99, 102, 241, 0.05), 0 4px 6px -2px rgba(99, 102, 241, 0.03);
+    --transition: all 0.2s ease;
+  }
+
+  body.dark-theme {
+    /* Layout Colors (Dark Mode) */
+    --bg: #0b0f19;
+    --card: #111827;
+    --text: #cbd5e1;
+    --navy: #f8fafc;
+    --muted: #94a3b8;
+    --border: #1e293b;
+    
+    /* Sidebar specific */
+    --sidebar-bg: #111827;
+    --sidebar-text: #94a3b8;
+    --sidebar-hover: #1e293b;
+    --sidebar-active-bg: rgba(20, 184, 166, 0.15);
+    --sidebar-active-text: #2dd4bf;
+    
+    /* Code specific */
+    --code-bg: #05070c;
+    --code-text: #cbd5e1;
+    
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-hover: 0 20px 25px -5px rgba(20, 184, 166, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    transition: var(--transition);
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+    transition: var(--transition);
+  }
+  code, pre, .mono { font-family: 'JetBrains Mono', monospace; }
+  a { color: var(--teal); text-decoration: none; transition: var(--transition); }
+  a:hover { text-decoration: none; color: var(--indigo-light); }
+
+  /* LAYOUT & MAIN STRUCT */
+  .shell { display: flex; min-height: 100vh; }
+  nav.toc {
+    width: 300px;
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 0 60px;
+    border-right: 1px solid var(--border);
+    transition: var(--transition);
+  }
+  nav.toc::-webkit-scrollbar { width: 6px; }
+  nav.toc::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  
+  .toc-brand { padding: 0 24px 20px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+  .toc-brand .tag {
+    display: inline-block;
+    background: var(--teal);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: .06em;
+    margin-bottom: 8px;
+  }
+  .toc-brand h2 { color: var(--navy); font-size: 16px; margin: 0 0 6px; line-height: 1.3; }
+  .toc-brand p { font-size: 12px; color: var(--muted); margin: 0 0 14px; }
+
+  /* Theme button inside TOC */
+  .theme-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    transition: var(--transition);
+  }
+  .theme-toggle-btn:hover {
+    background: var(--teal);
+    color: #fff;
+    border-color: var(--teal);
+  }
+
+  .toc-section { padding: 2px 14px; }
+  .toc-section .grp {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--teal);
+    padding: 18px 10px 6px;
+    font-weight: 700;
+  }
+  .toc-section a {
+    display: block;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: var(--sidebar-text);
+    border-radius: 6px;
+    margin-bottom: 2px;
+    transition: var(--transition);
+  }
+  .toc-section a:hover {
+    background: var(--sidebar-hover);
+    color: var(--navy);
+  }
+  .toc-section a.active {
+    background: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    font-weight: 600;
+  }
+
+  main.content {
+    flex-grow: 1;
+    min-width: 0;
+    padding: 50px 80px 100px;
+  }
+
+  /* Title Block */
+  .title-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 30px;
+    margin-bottom: 45px;
+  }
+  .title-header h1 { font-size: 38px; margin: 0 0 12px; line-height: 1.15; }
+  .title-header p { font-size: 16px; color: var(--muted); margin: 0; }
+
+  section {
+    padding: 40px 0;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 40px;
+  }
+  section:last-child { border-bottom: none; }
+
+  h2 { font-size: 24px; margin: 0 0 20px; display: flex; align-items: center; gap: 10px; }
+  h2 .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--teal);
+    background: var(--teal-glow);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  h3 { font-size: 18px; margin: 30px 0 15px; color: var(--navy); }
+  h4 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin: 25px 0 10px; }
+  p { font-size: 15px; margin: 0 0 16px; color: var(--text); }
+
+  /* CALLOUTS */
+  .callout {
+    border-left: 4px solid var(--teal);
+    background: var(--teal-glow);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--text);
+    margin: 18px 0;
+    border-top: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .callout.indigo { border-left-color: var(--indigo); background: rgba(99, 102, 241, 0.06); }
+  .callout.green { border-left-color: #16a34a; background: rgba(22, 163, 74, 0.06); }
+  .callout.red { border-left-color: #dc2626; background: rgba(220, 38, 38, 0.06); }
+
+  /* Grid Layouts */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 24px 0;
+  }
+
+  .grid-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+  }
+  .grid-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+  }
+  .grid-card h3 { margin-top: 0; }
+
+  /* Code Formatting */
+  pre.code {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 18px;
+    border-radius: var(--radius);
+    overflow-x: auto;
+    font-size: 13.5px;
+    line-height: 1.5;
+    margin: 16px 0;
+    border: 1px solid var(--border);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .k { color: #f47920; font-weight: bold; } /* keyword */
+  .s { color: #34d399; } /* string */
+  .c { color: #64748b; font-style: italic; } /* comment */
+
+  /* Tables */
+  .table-container {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin: 12px 0 24px;
+    box-shadow: var(--shadow);
+  }
+  table.small-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    text-align: left;
+    background: var(--card);
+  }
+  table.small-table th {
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 10px 14px;
+    font-weight: 600;
+  }
+  table.small-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  table.small-table tr:last-child td { border-bottom: none; }
+
+  /* Header Bar for Mobile Layout */
+  .mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .hamburger-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--navy);
+    cursor: pointer;
+  }
+
+  .mobile-header-brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    color: var(--navy);
+    font-size: 16px;
+  }
+
+  /* Slide-out Mobile Drawer Navigation */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 998;
+  }
+
+  .drawer-overlay.open { display: block; }
+
+  .mobile-drawer {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: -320px;
+    width: 290px;
+    background: var(--sidebar-bg);
+    z-index: 999;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    padding: 20px 0;
+  }
+
+  .mobile-drawer.open { left: 0; }
+  .drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px 15px;
+    border-bottom: 1px solid var(--border);
+  }
+  .drawer-close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--navy);
+  }
+
+  /* Back to top floating link */
+  .top-link {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--teal);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    box-shadow: var(--shadow-hover);
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+    z-index: 90;
+  }
+  .top-link.show { opacity: 1; pointer-events: auto; }
+
+  /* INTERACTIVE SIMULATOR SPECIFIC Styles */
+  .sim-panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin: 24px 0;
+    box-shadow: var(--shadow);
+  }
+
+  .sim-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 28px;
+  }
+
+  .sim-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .sim-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    padding: 16px;
+    border-radius: 8px;
+    text-align: left;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text);
+  }
+  .sim-btn:hover {
+    border-color: var(--teal);
+    transform: translateX(4px);
+  }
+  .sim-btn.active {
+    background: var(--teal-glow);
+    border-color: var(--teal);
+    color: var(--navy);
+  }
+
+  .sim-btn-title {
+    font-weight: 600;
+    font-size: 13.5px;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .sim-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--border);
+    color: var(--muted);
+  }
+  .sim-badge.active {
+    background: var(--teal-glow);
+    color: var(--teal);
+  }
+
+  .sim-display {
+    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 280px;
+  }
+  body.dark-theme .sim-display {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  .sim-step-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .sim-step-indicator::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: var(--border);
+    z-index: 1;
+    transform: translateY(-50%);
+  }
+
+  .sim-indicator-node {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    position: relative;
+    z-index: 2;
+    font-weight: 600;
+    transition: var(--transition);
+  }
+  .sim-indicator-node.active {
+    border-color: var(--teal);
+    box-shadow: 0 0 10px var(--teal);
+    background: var(--teal-glow);
+    color: var(--teal);
+  }
+  .sim-indicator-node.completed {
+    border-color: var(--indigo);
+    background: rgba(99, 102, 241, 0.05);
+    color: var(--indigo);
+  }
+
+  .sim-console {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 6px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    flex-grow: 1;
+    min-height: 140px;
+  }
+  
+  .sim-console-header {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--teal);
+    margin-bottom: 8px;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    padding-bottom: 6px;
+    font-weight: 700;
+  }
+
+  .sim-console-body {
+    white-space: pre-wrap;
+    margin: 0;
+  }
+
+  @media (max-width: 900px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .sim-layout { grid-template-columns: 1fr; }
+    main.content { padding: 40px 30px; }
+  }
+
+  @media (max-width: 768px) {
+    nav.toc { display: none; }
+    .mobile-header { display: flex; }
+    main.content { padding: 80px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Floating back-to-top -->
+  <a href="#" class="top-link" id="topLink">▲</a>
+
+  <!-- Mobile Header Bar -->
+  <div class="mobile-header">
+    <button class="hamburger-btn" onclick="toggleDrawer()">☰</button>
+    <div class="mobile-header-brand">Metadata Storage Strategy</div>
+    <button class="theme-toggle-btn" onclick="toggleTheme()" style="padding: 4px 8px;">
+      <span id="themeIconMobile">🌙</span>
+    </button>
+  </div>
+
+  <!-- Mobile Drawer Overlay -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+
+  <!-- Mobile Drawer Navigation -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-header">
+      <h3 style="margin:0; font-size: 16px; color: var(--navy);">Menu Outline</h3>
+      <button class="drawer-close-btn" onclick="toggleDrawer()">✕</button>
+    </div>
+    <div class="toc-brand" style="margin-top: 16px; border-bottom: none;">
+      <span class="tag">RAG / SQL HYBRID</span>
+      <h2>Metadata Storage Spec</h2>
+    </div>
+    <div class="toc-section" onclick="toggleDrawer()">
+      <div class="grp">Navigation Hub</div>
+      <a href="index.html">🏠 Portal Home</a>
+      <a href="Enterprise_Semantic_NLP_RAG_Architecture.html">⚙️ Technical Reference</a>
+      <a href="semantic_assistant_architecture.html">📄 Editorial Brief</a>
+
+      <div class="grp">Core Rule</div>
+      <a href="#governing-principle">The Governing Rule</a>
+      
+      <div class="grp">Relational Catalog</div>
+      <a href="#relational-db">metadata_catalog_db</a>
+      <a href="#relational-ddl">Database Table Schema</a>
+      
+      <div class="grp">Semantic Vector Store</div>
+      <a href="#vector-store">semantic_vector_store</a>
+      <a href="#vector-collections">Vector Collections Map</a>
+
+      <div class="grp">Interactive Traversal</div>
+      <a href="#sim-section">Metadata Dispatcher Demo</a>
+    </div>
+  </div>
+
+  <div class="shell">
+
+    <!-- Desktop Sidebar TOC -->
+    <nav class="toc" id="toc">
+      <div class="toc-brand">
+        <span class="tag">RAG / SQL HYBRID</span>
+        <h2>Metadata Storage Spec</h2>
+        <p>Relational SQL Database vs. Vector Embeddings Strategy</p>
+        <div style="margin-top: 14px;">
+          <button class="theme-toggle-btn" onclick="toggleTheme()" id="desktopThemeBtn">
+            <span id="themeIcon">🌙</span> <span id="themeText">Dark Theme</span>
+          </button>
+        </div>
+      </div>
+      <div class="toc-section">
+        <div class="grp">Navigation Hub</div>
+        <a href="index.html">🏠 Portal Home</a>
+        <a href="Enterprise_Semantic_NLP_RAG_Architecture.html">⚙️ Technical Reference</a>
+        <a href="semantic_assistant_architecture.html">📄 Editorial Brief</a>
+
+        <div class="grp">Core Rule</div>
+        <a href="#governing-principle">The Governing Rule</a>
+        
+        <div class="grp">Relational Catalog</div>
+        <a href="#relational-db">metadata_catalog_db</a>
+        <a href="#relational-ddl">Database Table Schema</a>
+        
+        <div class="grp">Semantic Vector Store</div>
+        <a href="#vector-store">semantic_vector_store</a>
+        <a href="#vector-collections">Vector Collections Map</a>
+
+        <div class="grp">Interactive Traversal</div>
+        <a href="#sim-section">Metadata Dispatcher Demo</a>
+      </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="content">
+      
+      <div class="title-header">
+        <h1>Metadata Storage Strategy:<br>Relational Database vs. Semantic Vector Store</h1>
+        <p>Definitive architectural division governing physical metadata storage, semantic discovery schemas, and dispatcher routing pipelines.</p>
+      </div>
+
+      <!-- ============ THE GOVERNING PRINCIPLE ============ -->
+      <section id="governing-principle">
+        <h2><span class="num">01</span> The Governing Rule</h2>
+        <p>When building a semantic natural-language assistant to query multi-source databases, a common architectural pitfall is storing <i>all</i> metadata in a vector store and relying on LLM embeddings to construct queries and joins. In enterprise production, this causes query failures due to halluncinations, lack of strict join path mapping, and missing data types.</p>
+        
+        <div class="callout green">
+          <strong>✅ DO: Store structural metadata in a relational database and perform SQL lookups.</strong><br>
+          Use the relational database to fetch exact table definitions, schema column names, primary/foreign key join relationships, business metrics formulas, and data quality check constraints. This guarantees 100% deterministic precision.
+        </div>
+
+        <div class="callout red">
+          <strong>❌ DO NOT: Rely on vector searches to retrieve schemas, column mappings, or join paths.</strong><br>
+          Vector store lookups are non-deterministic and suffer from loss of structured context. An LLM querying a vector store for schemas cannot reliably reconstruct complex join syntax or data type alignment.
+        </div>
+
+        <p><strong>The Strategy:</strong> Use the <strong>Vector Store exclusively for initial semantic discovery</strong> (i.e., mapping the user's plain-English terms to canonical business entities or KPIs). Once the candidate entities are discovered, perform a <strong>SQL metadata lookup against the relational catalog</strong> to retrieve the exact physical schemas, connections, and join syntax required for the query.</p>
+      </section>
+
+      <!-- ============ RELATIONAL DATABASE ============ -->
+      <section id="relational-db">
+        <h2><span class="num">02</span> Relational Catalog (metadata_catalog_db)</h2>
+        <p>The <code>metadata_catalog_db</code> is the source of truth for the system's structural integrity. It maintains strict relations, datatypes, and constraints.</p>
+        
+        <div class="grid-2">
+          <div class="grid-card">
+            <h3>🔌 1. Ingestion Layer</h3>
+            <p>Maintains physical credentials, host endpoints, and table schemas of source databases.</p>
+            <ul style="padding-left:20px; font-size: 13.5px; color: var(--muted);">
+              <li><code>source_connections</code>: Extracted system paths, ports, types.</li>
+              <li><code>physical_metadata</code>: Source-faithful raw column and data type schemas.</li>
+            </ul>
+          </div>
+          
+          <div class="grid-card">
+            <h3>🧠 2. Semantic Catalog Layer</h3>
+            <p>Maps source columns to standardized vocabulary and defines metrics, business rules, and constraints.</p>
+            <ul style="padding-left:20px; font-size: 13.5px; color: var(--muted);">
+              <li><code>standardized_attributes</code>: Column-to-attribute mapping.</li>
+              <li><code>semantic_entities</code>: Standardized objects (e.g. Employee).</li>
+              <li><code>semantic_attributes</code>: Canonical business fields.</li>
+              <li><code>semantic_metrics</code> &amp; <code>mappings</code>: KPI aggregate formulas.</li>
+              <li><code>semantic_relationships</code>: Primary/Foreign key paths.</li>
+              <li><code>semantic_business_rules</code>: Computations (e.g. Net Rev).</li>
+              <li><code>semantic_glossary</code> &amp; <code>synonyms</code>: Business definitions.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-card" style="margin-top:24px;">
+          <h3>🏗️ 3. Warehouse, Mart, &amp; Lineage Layer</h3>
+          <p>Defines the target analytical schemas and transformation jobs representing how data is processed.</p>
+          <ul style="padding-left:20px; font-size: 13.5px; color: var(--muted);">
+            <li><code>dwh_dimensions_facts</code>: Star Schema dimensions (`dim_employee`) and facts (`fct_absences`) schemas.</li>
+            <li><code>dm_data_marts</code>: Structured views / aggregates queried by business users.</li>
+            <li><code>etl_lineage</code>: Direct source-to-target pipeline job dependency maps.</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- ============ DATABASE SCHEMA DDL ============ -->
+      <section id="relational-ddl">
+        <h2><span class="num">03</span> Database DDL Representation</h2>
+        <p>The following DDL schemas represent the structured catalog tables in <code>metadata_catalog_db</code>:</p>
+        
+        <pre class="code"><span class="c">-- Core Ingestion tables</span>
+<span class="k">CREATE TABLE</span> source_connections (
+    system_id <span class="k">VARCHAR</span>(50) <span class="k">PRIMARY KEY</span>,
+    system_name <span class="k">VARCHAR</span>(100) <span class="k">NOT NULL</span>,
+    system_type <span class="k">VARCHAR</span>(50),
+    host_endpoint <span class="k">VARCHAR</span>(255),
+    source_schema <span class="k">VARCHAR</span>(100)
+);
+
+<span class="c">-- Standardized attribute crosswalk</span>
+<span class="k">CREATE TABLE</span> standardized_attributes (
+    attribute_id <span class="k">INTEGER</span> <span class="k">PRIMARY KEY</span>,
+    business_attribute_name <span class="k">VARCHAR</span>(100) <span class="k">NOT NULL</span>,
+    source_system <span class="k">VARCHAR</span>(50) <span class="k">NOT NULL</span>,
+    physical_table <span class="k">VARCHAR</span>(100) <span class="k">NOT NULL</span>,
+    physical_column <span class="k">VARCHAR</span>(100) <span class="k">NOT NULL</span>,
+    datatype <span class="k">VARCHAR</span>(50)
+);
+
+<span class="c">-- Join Paths definition</span>
+<span class="k">CREATE TABLE</span> semantic_relationships (
+    relationship_id <span class="k">INTEGER</span> <span class="k">PRIMARY KEY</span>,
+    parent_entity <span class="k">VARCHAR</span>(100) <span class="k">NOT NULL</span>,
+    child_entity <span class="k">VARCHAR</span>(100) <span class="k">NOT NULL</span>,
+    parent_join_column <span class="k">VARCHAR</span>(100) <span class="k">NOT NULL</span>,
+    child_join_column <span class="k">VARCHAR</span>(100) <span class="k">NOT NULL</span>,
+    relationship_type <span class="k">VARCHAR</span>(50) <span class="c">-- 'One-To-Many' / 'Many-To-One'</span>
+);</pre>
+      </section>
+
+      <!-- ============ SEMANTIC VECTOR STORE ============ -->
+      <section id="vector-store">
+        <h2><span class="num">04</span> Semantic Vector Store (semantic_vector_store)</h2>
+        <p>The <code>semantic_vector_store</code> is used only for **semantic matching and discovery**. It stores textual embeddings of concepts to map user phrasing to canonical metadata keys.</p>
+        
+        <div class="callout indigo">
+          <strong>How it Works:</strong> When a user asks: <i>"What is our worker count?"</i>, the vector store translates <code>worker count</code> to the canonical metric <code>Employee Count</code> and the entity <code>Employee</code>. It does not provide schemas; it simply returns the exact IDs/keys needed to query the relational database.
+        </div>
+
+        <p><strong>Vector Collections structure:</strong></p>
+        <div class="table-container">
+          <table class="small-table">
+            <thead>
+              <tr><th>Collection Name</th><th>Metadata Payload fields</th><th>Purpose</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Glossary</code></td>
+                <td><code>{ "term": "Employee", "domain": "HR" }</code></td>
+                <td>Resolves user business jargon to standardized definitions.</td>
+              </tr>
+              <tr>
+                <td><code>Entities</code></td>
+                <td><code>{ "entity_id": 1001, "entity_name": "Employee Absence" }</code></td>
+                <td>Maps phrasing like "leaves" or "vacation" to canonical entities.</td>
+              </tr>
+              <tr>
+                <td><code>Metrics</code></td>
+                <td><code>{ "metric_name": "Revenue", "aggregation": "SUM" }</code></td>
+                <td>Resolves metric inquiries to canonical KPI metrics.</td>
+              </tr>
+              <tr>
+                <td><code>Business_Rules</code></td>
+                <td><code>{ "rule_id": "BR001", "entity": "Employee Absence" }</code></td>
+                <td>Identifies when a question references calculated business logic.</td>
+              </tr>
+              <tr>
+                <td><code>Synonyms</code></td>
+                <td><code>{ "canonical_term": "Revenue", "synonym": "turnover" }</code></td>
+                <td>Expands plain-text search terms using custom enterprise thesauruses.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ DISPATCHER SIMULATOR ============ -->
+      <section id="sim-section">
+        <h2><span class="num">05</span> Interactive Metadata Dispatcher Simulator</h2>
+        <p>Observe how the hybrid model resolves queries. It first queries the Vector Store to discover entities, then performs SQL lookup against the Relational Catalog to build the physical query.</p>
+
+        <div class="sim-panel">
+          <div class="sim-layout">
+            <!-- Selector preset buttons -->
+            <div class="sim-selector">
+              <button class="sim-btn active" id="btn-abs" onclick="runDispatch('absence')">
+                <div class="sim-btn-title">
+                  <span>HR Absence query</span>
+                  <span class="sim-badge active">Hybrid</span>
+                </div>
+                <div style="font-size:12px; color:var(--muted);">"Why did employee absences increase in EMEA?"</div>
+              </button>
+
+              <button class="sim-btn" id="btn-rev" onclick="runDispatch('revenue')">
+                <div class="sim-btn-title">
+                  <span>Finance Revenue Query</span>
+                  <span class="sim-badge">Structured SQL</span>
+                </div>
+                <div style="font-size:12px; color:var(--muted);">"What is our net revenue for EMEA this quarter?"</div>
+              </button>
+
+              <button class="sim-btn" id="btn-disc" onclick="runDispatch('discount')">
+                <div class="sim-btn-title">
+                  <span>Sales Discount Rules</span>
+                  <span class="sim-badge">Policy RAG</span>
+                </div>
+                <div style="font-size:12px; color:var(--muted);">"What is our discount approval threshold?"</div>
+              </button>
+            </div>
+
+            <!-- Trace Visual Display Console -->
+            <div class="sim-display">
+              <div class="sim-step-indicator">
+                <div class="sim-indicator-node active" id="s-node-1">1<div style="position:absolute; top:40px; font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:600; white-space:nowrap;">Input</div></div>
+                <div class="sim-indicator-node" id="s-node-2">2<div style="position:absolute; top:40px; font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:600; white-space:nowrap;">Vector</div></div>
+                <div class="sim-indicator-node" id="s-node-3">3<div style="position:absolute; top:40px; font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:600; white-space:nowrap;">Relational</div></div>
+                <div class="sim-indicator-node" id="s-node-4">4<div style="position:absolute; top:40px; font-size:9px; color:var(--muted); text-transform:uppercase; font-weight:600; white-space:nowrap;">Execution</div></div>
+              </div>
+
+              <div class="sim-console">
+                <div class="sim-console-header" id="sim-console-title">Dispatcher Log Trace</div>
+                <p class="sim-console-body" id="sim-console-text">
+                  Select a scenario to witness the dispatcher resolve the metadata pipeline step-by-step.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const dispatchScenarios = {
+      absence: {
+        stages: [
+          "STAGE 1: User Query Received\n-------------------------------\nQuery: \"Why did employee absences increase in EMEA?\"\nKeywords extracted: [employee absences, increase, EMEA]",
+          
+          "STAGE 2: Vector Store Query (Concept Discovery)\n-----------------------------------------\nQuerying semantic_vector_store.Entities and .Metrics...\n- Match Found: Entity 'Employee Absence' (Score: 0.96)\n- Match Found: Metric 'Absence Count' (Score: 0.94)\n- Match Found: Domain 'Human Resources' (Score: 0.88)\n\nResult: Identified entity ID 1001 and metric 'Absence Count'. Discovered target dimensions.",
+          
+          "STAGE 3: Relational Catalog Query (Exact Schema Resolution)\n------------------------------------------------------\nExecuting SQL queries against metadata_catalog_db:\n\n1. Get Table Source:\n   SELECT physical_object FROM semantic_source_mappings WHERE entity_name = 'Employee Absence' AND source_system = 'Databricks';\n   -> Returns: 'DM_EMPLOYEE_ABSENCE'\n\n2. Get Column Schemas:\n   SELECT physical_column, datatype FROM standardized_attributes WHERE business_attribute_name = 'Absence Date' AND source_system = 'Databricks';\n   -> Returns: 'ABSENCE_DATE' (DATE)\n\n3. Get Join Paths:\n   SELECT parent_join_column, child_join_column FROM semantic_relationships WHERE parent_entity = 'Department' AND child_entity = 'Employee Absence';\n   -> Returns: Join on 'department_key'",
+          
+          "STAGE 4: Physical SQL Construction & Execution Plan\n-------------------------------------------------\nUsing deterministic metadata to compile executable SQL:\n\nSELECT \n    d.department_name,\n    SUM(a.absence_count) as total_absences\nFROM fct_absences a\nJOIN dim_department d ON a.department_key = d.department_key\nWHERE a.absence_date >= DATE_SUB(CURRENT_DATE(), INTERVAL 1 MONTH)\nGROUP BY d.department_name;"
+        ]
+      },
+      revenue: {
+        stages: [
+          "STAGE 1: User Query Received\n-------------------------------\nQuery: \"What is our net revenue for EMEA this quarter?\"\nKeywords extracted: [net revenue, EMEA, quarter]",
+          
+          "STAGE 2: Vector Store Query (Concept Discovery)\n-----------------------------------------\nQuerying semantic_vector_store.Metrics and .Synonyms...\n- Match Found: Metric 'Revenue' (Score: 0.97)\n- Synonym Resolved: 'Turnover' -> 'Revenue'\n- Match Found: Business Domain 'Finance' (Score: 0.91)\n\nResult: Identified metric 'Revenue' and domain 'Finance'. Dispatched to relational metadata queries.",
+          
+          "STAGE 3: Relational Catalog Query (Exact Schema Resolution)\n------------------------------------------------------\nExecuting SQL queries against metadata_catalog_db:\n\n1. Retrieve SQL Formulas:\n   SELECT formula FROM semantic_kpi_definitions WHERE metric = 'Revenue';\n   -> Returns: 'SUM(invoice_amount)'\n\n2. Fetch Business Rules:\n   SELECT rule_logic FROM semantic_business_rules WHERE rule_name = 'Net Revenue';\n   -> Returns: 'gross_revenue - tax'\n\n3. Fetch Column Mapping:\n   SELECT physical_column FROM standardized_attributes WHERE business_attribute_name = 'Revenue Amount' AND source_system = 'Snowflake';\n   -> Returns: 'NET_AMOUNT' (DECIMAL)",
+          
+          "STAGE 4: Physical SQL Construction & Execution Plan\n-------------------------------------------------\nCompiling resolved SQL for Snowflake execution:\n\nSELECT \n    region,\n    SUM(gross_revenue - tax) AS net_revenue\nFROM fct_revenue r\nJOIN dim_geography g ON r.geo_key = g.geo_key\nWHERE g.region_name = 'EMEA' \n  AND r.posting_date >= '2026-04-01'\nGROUP BY region;"
+        ]
+      },
+      discount: {
+        stages: [
+          "STAGE 1: User Query Received\n-------------------------------\nQuery: \"What is our discount approval threshold?\"\nKeywords extracted: [discount approval, threshold]",
+          
+          "STAGE 2: Vector Store Query (Concept Discovery)\n-----------------------------------------\nQuerying semantic_vector_store.Entities and .Business_Rules...\n- Match Found: Entity 'Discount' (Score: 0.95)\n- Match Found: Business Rule 'High Discount Flag' (Score: 0.89)\n- Match Found: Domain 'Sales' (Score: 0.93)\n\nResult: Identified concept 'Discount' and related guidelines. Dispatched to document retrieval.",
+          
+          "STAGE 3: Relational Catalog Query (Exact Schema Resolution)\n------------------------------------------------------\nExecuting SQL queries against metadata_catalog_db:\n\n1. Fetch Document Registry:\n   SELECT document_name, storage_path FROM semantic_document_registry WHERE entity_name = 'Discount';\n   -> Returns: 'Sales Playbook & Discount Policies', './semantic_assistant_architecture.html#playground-section'\n\n2. Retrieve Rules Details:\n   SELECT rule_logic FROM semantic_business_rules WHERE rule_id = 'BR003';\n   -> Returns: 'discount_rate > 0.15'",
+          
+          "STAGE 4: RAG Content Extraction\n-----------------------------\nRouting query to Vector Document search for contextual extraction.\n\nRetrieved passage: \"Discounts above 15% require regional VP sign-off, a rule that has been in effect since Q2. Standard discount tiers below that threshold are pre-approved per the Sales Playbook.\"\n\nContext fed to LLM to construct final answer."
+        ]
+      }
+    };
+
+    function runDispatch(scenarioKey) {
+      // Toggle button states
+      const buttons = document.querySelectorAll('.sim-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(scenarioKey === 'absence' ? 'btn-abs' : scenarioKey === 'revenue' ? 'btn-rev' : 'btn-disc');
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const data = dispatchScenarios[scenarioKey];
+      const consoleTitle = document.getElementById('sim-console-title');
+      const consoleText = document.getElementById('sim-console-text');
+      
+      const nodes = ['s-node-1', 's-node-2', 's-node-3', 's-node-4'];
+      
+      // Reset indicator nodes
+      nodes.forEach(id => {
+        const node = document.getElementById(id);
+        node.className = 'sim-indicator-node';
+      });
+
+      let currentStage = 0;
+      
+      function runStage() {
+        if (currentStage < 4) {
+          // Update active nodes
+          for (let i = 0; i <= currentStage; i++) {
+            const node = document.getElementById(nodes[i]);
+            if (i === currentStage) {
+              node.className = 'sim-indicator-node active';
+            } else {
+              node.className = 'sim-indicator-node completed';
+            }
+          }
+
+          // Update text console
+          consoleTitle.innerText = `Dispatcher Log Trace — Stage ${currentStage + 1}`;
+          consoleText.innerText = data.stages[currentStage];
+          
+          currentStage++;
+          setTimeout(runStage, 2200);
+        }
+      }
+      
+      runStage();
+    }
+
+    // Theme Switcher Logic
+    function toggleTheme() {
+      const body = document.body;
+      body.classList.toggle('dark-theme');
+      
+      const isDark = body.classList.contains('dark-theme');
+      localStorage.setItem('theme-storage', isDark ? 'dark' : 'light');
+      
+      updateThemeUI(isDark);
+    }
+
+    function applyThemePreference() {
+      const savedTheme = localStorage.getItem('theme-storage');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      const isDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+      if (isDark) {
+        document.body.classList.add('dark-theme');
+      } else {
+        document.body.classList.remove('dark-theme');
+      }
+      updateThemeUI(isDark);
+    }
+
+    function updateThemeUI(isDark) {
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeText');
+      const iconMobile = document.getElementById('themeIconMobile');
+      
+      if (icon && text) {
+        icon.innerText = isDark ? '☀️' : '🌙';
+        text.innerText = isDark ? 'Light Theme' : 'Dark Theme';
+      }
+      if (iconMobile) {
+        iconMobile.innerText = isDark ? '☀️' : '🌙';
+      }
+    }
+
+    // Responsive Drawer Toggle
+    function toggleDrawer() {
+      const drawer = document.getElementById('mobileDrawer');
+      const overlay = document.getElementById('drawerOverlay');
+      drawer.classList.toggle('open');
+      overlay.classList.toggle('open');
+    }
+
+    // Back to top scrollspy
+    window.addEventListener('scroll', function() {
+      const topLink = document.getElementById('topLink');
+      const sections = document.querySelectorAll('section');
+      const links = document.querySelectorAll('.toc-section a');
+      
+      let current = '';
+      sections.forEach(sec => {
+        const rect = sec.getBoundingClientRect();
+        if (rect.top <= 100) current = sec.id;
+      });
+
+      links.forEach(l => {
+        const href = l.getAttribute('href');
+        l.classList.toggle('active', href === '#' + current);
+      });
+
+      if (topLink) {
+        topLink.classList.toggle('show', window.scrollY > 400);
+      }
+    });
+
+    // Initialize
+    applyThemePreference();
+    setTimeout(() => { runDispatch('absence'); }, 500);
+  </script>
+</body>
+</html>
