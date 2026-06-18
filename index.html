@@ -396,6 +396,27 @@
       box-shadow: 0 0 15px rgba(244, 121, 32, 0.4);
     }
 
+    /* RAG Population Strategy Card */
+    .doc-card.populate-theme::before {
+      background: linear-gradient(to right, var(--green), var(--primary));
+    }
+    .populate-theme .doc-card-badge {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+    }
+    body.light-theme .populate-theme .doc-card-badge {
+      background: #d1fae5;
+      color: #059669;
+    }
+    .populate-theme li svg { color: var(--green); }
+    .populate-theme .launch-btn {
+      background: linear-gradient(to right, var(--green), var(--primary));
+      color: #fff;
+    }
+    .populate-theme .launch-btn:hover {
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+    }
+
     /* Live Pipeline Status & Route Analyzer */
     .dashboard-panel {
       background: var(--card);
@@ -820,6 +841,37 @@
         </div>
         <a href="rag_loading_tuning_architecture.html?v=1.1.0" class="launch-btn">
           Open RAG Loading &amp; Tuning ➔
+        </a>
+      </div>
+
+      <!-- RAG Population Strategy Card -->
+      <div class="doc-card populate-theme">
+        <div>
+          <div class="doc-card-badge">Population Strategy</div>
+          <h3>RAG Population Strategy</h3>
+          <p>How knowledge gets <em>into</em> the RAG from three input sources — standardized vendor metadata, industry-specific seed metadata, and the end-user Q&amp;A that drives pipeline-JSON generation.</p>
+
+          <ul class="doc-features-list">
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Source → knowledge-type map across all five types</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Interactive three-source explorer</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>The bot's consume-and-produce loop</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Sequencing &amp; population guardrails</span>
+            </li>
+          </ul>
+        </div>
+        <a href="rag_population_strategy.html?v=1.0.0" class="launch-btn">
+          Open Population Strategy ➔
         </a>
       </div>
 

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Population Strategy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #f47920;
+      --primary-light: #ffb066;
+      --primary-glow: rgba(244, 121, 32, 0.15);
+      --terracotta: #c2410c;
+      --indigo: #6366f1;
+      --indigo-glow: rgba(99, 102, 241, 0.15);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --red: #ef4444;
+
+      --bg: #0b0f19;
+      --bg-grid: rgba(255, 255, 255, 0.02);
+      --card: #111827;
+      --card-2: #0e1524;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #d1d5db;
+      --navy: #f9fafb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --badge-bg: #1e293b;
+      --code-bg: #0a0e17;
+
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 2px 8px -1px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 25px 40px -10px rgba(244, 121, 32, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.4);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.light-theme {
+      --bg: #f8fafc;
+      --bg-grid: rgba(15, 23, 42, 0.015);
+      --card: #ffffff;
+      --card-2: #f8fafc;
+      --card-border: rgba(15, 23, 42, 0.06);
+      --text: #475569;
+      --navy: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --badge-bg: #f1f5f9;
+      --code-bg: #0f172a;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-hover: 0 20px 25px -5px rgba(99, 102, 241, 0.1), 0 10px 10px -5px rgba(99, 102, 241, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+    body {
+      margin: 0; font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      background-image: linear-gradient(to right, var(--bg-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+      background-size: 40px 40px; color: var(--text); line-height: 1.65;
+      transition: var(--transition); overflow-x: hidden;
+    }
+    h1, h2, h3, h4 { font-family: 'Space Grotesk', sans-serif; color: var(--navy); letter-spacing: -0.02em; margin-top: 0; }
+    .editorial-font { font-family: 'Fraunces', Georgia, serif; font-style: italic; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    a { text-decoration: none; transition: var(--transition); color: var(--primary); }
+    a:hover { color: var(--primary-light); }
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+    header.topbar { position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .topbar-inner { max-width: 1140px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .logo-container { display: flex; align-items: center; gap: 12px; }
+    .logo-badge { background: var(--primary); color: #fff; font-weight: 700; font-family: 'Space Grotesk', sans-serif; padding: 6px 12px; border-radius: 6px; font-size: 14px; letter-spacing: 0.05em; }
+    .logo-text h2 { font-size: 17px; margin: 0; line-height: 1; }
+    .logo-text p { margin: 3px 0 0; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
+    .pill-link, .theme-toggle-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--card-border); color: var(--navy); padding: 8px 16px; border-radius: 30px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: var(--shadow); transition: var(--transition); font-family: 'Inter', sans-serif; }
+    .pill-link:hover, .theme-toggle-btn:hover { border-color: var(--primary); transform: translateY(-2px); color: var(--navy); }
+
+    .hero { text-align: center; padding: 70px 0 30px; }
+    .hero-tag { display: inline-block; background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(244, 121, 32, 0.3); font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 20px; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 24px; }
+    body.light-theme .hero-tag { background: var(--badge-bg); border-color: var(--border); }
+    .hero h1 { font-size: 46px; line-height: 1.1; margin: 0 auto 18px; max-width: 880px; }
+    .hero p.lede { font-size: 18px; color: var(--muted); max-width: 740px; margin: 0 auto; }
+    .hero .meta { font-size: 13px; color: var(--muted); margin-top: 18px; }
+    .hero .meta b { color: var(--navy); }
+
+    .section-nav { position: sticky; top: 64px; z-index: 90; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 14px 0; margin: 24px 0 10px; background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(8px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .section-nav a { font-size: 12.5px; font-weight: 600; color: var(--muted); padding: 6px 13px; border-radius: 20px; border: 1px solid transparent; }
+    .section-nav a:hover { color: var(--navy); background: var(--badge-bg); }
+    .section-nav a.active { color: var(--primary); border-color: rgba(244,121,32,0.35); background: var(--primary-glow); }
+
+    section.block { padding: 54px 0 10px; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; }
+    section.block > .container > h2 { font-size: 32px; margin-bottom: 14px; }
+    .section-lede { font-size: 16px; color: var(--muted); max-width: 780px; margin: 0 0 32px; }
+
+    .panel { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px; box-shadow: var(--shadow); margin-bottom: 24px; }
+    .panel h3 { font-size: 20px; margin-bottom: 12px; }
+    .panel h4 { font-size: 15px; margin: 18px 0 8px; color: var(--navy); }
+    .panel p { margin: 0 0 14px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } }
+    @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--primary-glow); padding: 16px 20px; border-radius: 0 10px 10px 0; margin: 0 0 20px; font-size: 14.5px; }
+    .callout.indigo { border-left-color: var(--indigo); background: var(--indigo-glow); }
+    .callout.green { border-left-color: var(--green); background: var(--green-glow); }
+    .callout.red { border-left-color: var(--red); background: rgba(239,68,68,0.12); }
+    .callout b { color: var(--navy); }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 620px; }
+    thead th { background: var(--badge-bg); color: var(--navy); text-align: left; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: color-mix(in srgb, var(--badge-bg) 50%, transparent); }
+    td code, p code, li code { background: var(--badge-bg); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; color: var(--primary-light); }
+    body.light-theme td code, body.light-theme p code, body.light-theme li code { color: var(--terracotta); }
+
+    .chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 5px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+    .chip.hot { background: rgba(244,121,32,0.15); color: var(--primary-light); }
+    .chip.gated { background: var(--indigo-glow); color: #a5b4fc; }
+    .chip.live { background: var(--green-glow); color: #34d399; }
+    body.light-theme .chip.hot { background: #ffebd5; color: #ea580c; }
+    body.light-theme .chip.gated { background: #e0e7ff; color: #4f46e5; }
+    body.light-theme .chip.live { background: #d1fae5; color: #059669; }
+
+    ul.clean { list-style: none; padding: 0; margin: 0; }
+    ul.clean li { padding: 7px 0 7px 26px; position: relative; font-size: 14.5px; border-bottom: 1px dashed var(--border); }
+    ul.clean li:last-child { border-bottom: none; }
+    ul.clean li::before { content: '▸'; position: absolute; left: 4px; color: var(--primary); }
+
+    /* Source explorer */
+    .src-tabs { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 22px; }
+    @media (max-width: 760px){ .src-tabs { grid-template-columns: 1fr; } }
+    .src-tab { background: var(--badge-bg); border: 1px solid var(--border); border-radius: 12px; padding: 18px; cursor: pointer; transition: var(--transition); }
+    .src-tab:hover { border-color: var(--primary); transform: translateY(-3px); }
+    .src-tab.active { background: var(--primary-glow); border-color: var(--primary); }
+    .src-tab .lbl { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--primary); }
+    .src-tab .nm { display: block; font-weight: 600; color: var(--navy); font-size: 15px; margin: 6px 0 4px; }
+    .src-tab .truth { display: block; font-size: 12px; color: var(--muted); font-style: italic; }
+    .src-body { display: none; }
+    .src-body.active { display: block; animation: fade 0.35s ease; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform:none;} }
+    .kt-meta-grid { display: grid; grid-template-columns: 150px 1fr; gap: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+    .kt-meta-grid > div { padding: 11px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .kt-meta-grid > div:nth-child(odd) { background: var(--badge-bg); font-weight: 600; color: var(--navy); font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .kt-meta-grid > div:nth-last-child(-n+2) { border-bottom: none; }
+    @media (max-width: 620px) { .kt-meta-grid { grid-template-columns: 1fr; } .kt-meta-grid > div:nth-child(odd){ border-bottom: none; } }
+
+    pre.ascii { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 22px; overflow-x: auto; font-size: 12px; line-height: 1.5; color: #9fb3c8; margin: 0 0 8px; white-space: pre; }
+
+    /* loop flow chips */
+    .loop { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 12px; }
+    .loop .step { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600; color: var(--navy); }
+    .loop .arrow { color: var(--primary); font-weight: 700; }
+
+    .src-pill { display:inline-block; font-size: 11px; font-weight:700; padding: 2px 8px; border-radius: 5px; margin-right:4px; }
+    .src-pill.A { background: var(--green-glow); color: #34d399; }
+    .src-pill.B { background: var(--indigo-glow); color: #a5b4fc; }
+    .src-pill.C { background: rgba(244,121,32,0.15); color: var(--primary-light); }
+    body.light-theme .src-pill.A { background:#d1fae5; color:#059669; }
+    body.light-theme .src-pill.B { background:#e0e7ff; color:#4f46e5; }
+    body.light-theme .src-pill.C { background:#ffebd5; color:#ea580c; }
+
+    .files-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; }
+    .file-card { display: flex; gap: 14px; align-items: flex-start; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: var(--transition); }
+    .file-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+    .file-ico { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; padding: 6px 8px; border-radius: 6px; background: var(--primary-glow); color: var(--primary); flex-shrink: 0; }
+    .file-card .fname { font-weight: 600; color: var(--navy); font-size: 14px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+    .file-card .fdesc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    footer.foot { border-top: 1px solid var(--border); margin-top: 60px; padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
+    footer.foot b { color: var(--navy); }
+
+    @media (max-width: 700px) { .hero h1 { font-size: 32px; } .logo-text { display: none; } section.block > .container > h2 { font-size: 25px; } }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo-container">
+        <div class="logo-badge">RAG</div>
+        <div class="logo-text">
+          <h2>RAG Population Strategy</h2>
+          <p>Vendor metadata · Industry seed · End-user Q&amp;A</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <a class="pill-link" href="rag_loading_tuning_architecture.html">↩ Loading &amp; Tuning</a>
+        <a class="pill-link" href="index.html">⌂ Portal</a>
+        <button class="theme-toggle-btn" onclick="toggleTheme()"><span id="themeIcon">☀️</span><span id="themeText">Light Theme</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero">
+      <div class="hero-tag">RAG Population Strategy • v1.0.0</div>
+      <h1>How knowledge gets <span class="editorial-font">into</span> the RAG</h1>
+      <p class="lede">Three input sources feed the knowledge store: standardized vendor metadata, industry-specific seed metadata, and the end-user Q&amp;A that the Data Engineering Bot runs to build pipeline JSON. Two are load-ahead grounding; one is earned over time and compounds the other two.</p>
+      <div class="meta">Author: <b>Anvizent AI Team</b> &nbsp;•&nbsp; Companion to the <b>RAG Loading &amp; Tuning Add-On</b> &nbsp;•&nbsp; The pipeline-JSON generation method is a fixed input, not redefined here</div>
+    </section>
+  </div>
+
+  <nav class="section-nav" id="sectionNav">
+    <a href="#model">Three Truths</a>
+    <a href="#map">Source Map</a>
+    <a href="#sources">The Three Sources</a>
+    <a href="#loop">The Bot Loop</a>
+    <a href="#compose">Composition</a>
+    <a href="#sequence">Sequencing</a>
+    <a href="#guardrails">Guardrails</a>
+    <a href="#sources-files">Source Files</a>
+  </nav>
+
+  <!-- Model -->
+  <section class="block" id="model">
+    <div class="container">
+      <div class="eyebrow">The mental model</div>
+      <h2>Three sources, three kinds of truth</h2>
+      <p class="section-lede">Each input source carries a distinct kind of truth into the RAG. Keeping them distinct is what lets the bot ask business-language questions and still ground every suggestion.</p>
+      <div class="grid-3">
+        <div class="panel">
+          <div class="src-pill A">SOURCE A</div>
+          <h3>Structural truth</h3>
+          <p style="margin:0;color:var(--muted);"><i>What exists.</i> The published object/field/endpoint model of each software — stable, standardized, identical across every customer of that vendor.</p>
+        </div>
+        <div class="panel">
+          <div class="src-pill B">SOURCE B</div>
+          <h3>Semantic truth</h3>
+          <p style="margin:0;color:var(--muted);"><i>What it means here.</i> Industry-specific metric definitions, formulas, business rules, synonyms — the vertical's shared vocabulary.</p>
+        </div>
+        <div class="panel">
+          <div class="src-pill C">SOURCE C</div>
+          <h3>Experiential truth</h3>
+          <p style="margin:0;color:var(--muted);"><i>What actually works.</i> The patterns, customizations, and outcomes earned from real end-user Q&amp;A → deploy loops.</p>
+        </div>
+      </div>
+      <div class="callout"><b>A &amp; B make the bot competent. C makes it expert.</b> A and B are loaded ahead as grounding; C accumulates once the bot is live and flows back to enrich both.</div>
+    </div>
+  </section>
+
+  <!-- Source map -->
+  <section class="block" id="map">
+    <div class="container">
+      <div class="eyebrow">At a glance</div>
+      <h2>Source → knowledge type map</h2>
+      <p class="section-lede">Where each input lands in the five knowledge types defined by the loading architecture, and under which regime.</p>
+      <div class="panel" style="padding:18px;">
+        <div class="table-wrap" style="margin:0;border:none;">
+          <table>
+            <thead><tr><th>Input source</th><th>Populates</th><th>Regime</th><th>Namespace</th><th>Scope</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><span class="src-pill A">A</span> Vendor standardized metadata</td>
+                <td>Type 1a structural docs</td>
+                <td><span class="chip gated">Gated</span></td>
+                <td><code>kb:sor-docs:{system}:{version}</code></td>
+                <td>Global (per vendor)</td>
+              </tr>
+              <tr>
+                <td><span class="src-pill B">B</span> Industry seed metadata</td>
+                <td>Type 3 semantics + seed Type 2</td>
+                <td><span class="chip gated">Gated</span></td>
+                <td><code>kb:semantics:{industry}:{version}</code> · <code>kb:patterns:global</code></td>
+                <td>Global (per vertical)</td>
+              </tr>
+              <tr>
+                <td><span class="src-pill C">C</span> End-user Q&amp;A (the bot)</td>
+                <td>Type 2 patterns · Type 3 suggestions · Type 4 customizations · Type 5 telemetry</td>
+                <td><span class="chip hot">Hot</span></td>
+                <td><code>kb:patterns:global</code> · tenant DB · <code>kb:telemetry-insights:*</code></td>
+                <td>Global + tenant</td>
+              </tr>
+              <tr>
+                <td style="color:var(--muted);">— (not a population source)</td>
+                <td>Type 1b live schema</td>
+                <td><span class="chip live">Live</span></td>
+                <td>Metadata-service cache (never indexed)</td>
+                <td>Tenant</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The three sources -->
+  <section class="block" id="sources">
+    <div class="container">
+      <div class="eyebrow">In detail</div>
+      <h2>The three sources</h2>
+      <p class="section-lede">Select a source to see how it is acquired, transformed, gated, and landed.</p>
+      <div class="panel">
+        <div class="src-tabs" id="srcTabs">
+          <div class="src-tab active" data-src="A"><span class="lbl">SOURCE A</span><span class="nm">Vendor standardized metadata</span><span class="truth">structural truth — what exists</span></div>
+          <div class="src-tab" data-src="B"><span class="lbl">SOURCE B</span><span class="nm">Industry seed metadata</span><span class="truth">semantic truth — what it means</span></div>
+          <div class="src-tab" data-src="C"><span class="lbl">SOURCE C</span><span class="nm">End-user Q&amp;A</span><span class="truth">experiential truth — what works</span></div>
+        </div>
+
+        <div class="src-body active" data-src="A">
+          <h3>A · Vendor standardized metadata <span class="chip gated">Gated · global</span></h3>
+          <p>The published, version-stable structural docs for each software: data dictionaries, OpenAPI / API specs, ERDs, object/field references (Salesforce object reference, SAP table/field docs, Epicor data dictionary, and so on).</p>
+          <div class="kt-meta-grid">
+            <div>Acquire</div><div>Harvest each vendor's published structural docs per <code>{system, version}</code>. Standardized and public, so it loads <b>once, globally</b> — Salesforce's object model is identical for every Salesforce customer.</div>
+            <div>Transform</div><div>Parse → section-aware chunk (one object/table or one endpoint per chunk family) → embed → tag <code>system</code>, <code>version</code>, <code>object_type</code>, <code>field</code>.</div>
+            <div>Gate</div><div>Curated. Versioned; on a vendor version bump the prior version is superseded (retained while any pipeline is pinned to it, then hard-deleted).</div>
+            <div>Land</div><div>Type 1a → <code>kb:sor-docs:{system}:{version}</code></div>
+            <div>Role</div><div>Gives the bot candidate tables/fields and their meanings so it can propose joins and lookups without exposing table names to the user.</div>
+          </div>
+          <div class="callout red" style="margin-top:18px;"><b>Public docs are indexed; the live tenant instance schema is not.</b> The connected instance schema (Type 1b) is introspected at query time and cached — never embedded — because it drifts per tenant and would rot the index. Stable docs = indexed reference; live schema = ephemeral cache.</div>
+        </div>
+
+        <div class="src-body" data-src="B">
+          <h3>B · Industry seed metadata <span class="chip gated">Gated · global</span></h3>
+          <p>Curated, vertical-specific knowledge: metric / KPI definitions, formulas, canonical business rules, synonyms, plus a starter set of canonical reconciliation patterns for the industry.</p>
+          <div class="kt-meta-grid">
+            <div>Acquire</div><div>Team-authored per vertical, seeded from industry docs. Concrete seed asset already in the repo: <a href="semantic_metadata_catalog.xls">semantic_metadata_catalog.xls</a> (glossary, synonyms, entities, metrics, KPIs, business rules).</div>
+            <div>Transform</div><div>Author → review/approve → version → embed with definition, formula, <code>industry</code> tag, synonyms.</div>
+            <div>Gate</div><div>Human-curated, versioned. Corrected definitions supersede; prior kept read-only for lineage.</div>
+            <div>Land</div><div>Type 3 → <code>kb:semantics:{industry}:{version}</code>. Plus a few hand-authored canonical patterns published via the manual-template trigger into Type 2 (<code>kb:patterns:global</code>).</div>
+            <div>Role</div><div>Lets the bot's BA-style questions reference <i>business</i> concepts ("net revenue", "absence rate") instead of columns; the seeded patterns break the Type 2 cold start.</div>
+          </div>
+        </div>
+
+        <div class="src-body" data-src="C">
+          <h3>C · End-user Q&amp;A (the Data Engineering Bot) <span class="chip hot">Hot · global + tenant</span></h3>
+          <p>The bot runs its fixed BA-style 6-step method and emits pipeline JSON. The method is an input, not redefined here — the strategy harvests what it produces. Each artifact lands in a different knowledge type.</p>
+          <div class="kt-meta-grid">
+            <div>Pipeline JSON</div><div>→ <b>Type 2 pattern.</b> On deploy-success + reconciliation pass, extract the pattern signature (source pair, transform graph, reconciliation rules, dedup/lookup choices, the calculated-metric DAG) → <b>scrub tenant values</b> → generalize → embed → <code>kb:patterns:global</code>.</div>
+            <div>Confirmed metrics</div><div>→ <b>Type 3 suggestions.</b> A user-defined metric the glossary lacks enters the <b>batch-proposed-diff queue — never auto-written</b>. Approved items version back into Source B's glossary.</div>
+            <div>Overrides</div><div>→ <b>Type 4 customization.</b> Renames, custom rules, transform tweaks captured as a diff vs the generated baseline → the tenant's own database (physically isolated).</div>
+            <div>Run telemetry</div><div>→ <b>Type 5 insight.</b> Rules gate → LLM phrases survivors into <code>condition → outcome</code> statements; selection/success counts drive pattern reinforcement and decay.</div>
+            <div>Role</div><div>The self-improving core: every pipeline the bot builds makes the next suggestion smarter, and feeds B and Type 5.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- The bot loop -->
+  <section class="block" id="loop">
+    <div class="container">
+      <div class="eyebrow">The engine</div>
+      <h2>The bot is both consumer and producer</h2>
+      <p class="section-lede">At build-time the bot <b>consumes</b> the RAG to ground its questions; at deploy-time it <b>produces</b> knowledge that flows back in. That two-way flow is the "populate and use" loop.</p>
+      <div class="panel">
+        <h4>Build-time — the bot consumes</h4>
+        <div class="loop">
+          <span class="step">User Q&amp;A</span><span class="arrow">→</span>
+          <span class="step">retrieve <span class="src-pill A">A</span> structure</span><span class="arrow">+</span>
+          <span class="step">Type 1b live schema</span><span class="arrow">+</span>
+          <span class="step">retrieve <span class="src-pill B">B</span> semantics</span><span class="arrow">+</span>
+          <span class="step">Type 2 prior patterns</span><span class="arrow">+</span>
+          <span class="step">Type 4 tenant customizations</span><span class="arrow">→</span>
+          <span class="step">grounded BA suggestion</span>
+        </div>
+        <h4 style="margin-top:24px;">Deploy-time — the bot produces</h4>
+        <div class="loop">
+          <span class="step">Pipeline JSON</span><span class="arrow">→</span>
+          <span class="step">deploy + reconcile</span><span class="arrow">→</span>
+          <span class="step">scrub + generalize</span><span class="arrow">→</span>
+          <span class="step">Type 2 pattern</span>
+          <span class="arrow">·</span>
+          <span class="step">Type 3 suggestion</span>
+          <span class="arrow">·</span>
+          <span class="step">Type 4 customization</span>
+          <span class="arrow">·</span>
+          <span class="step">Type 5 telemetry</span>
+        </div>
+        <pre class="ascii">   ┌──────────────────────────────────────────────────────────────┐
+   │   A vendor docs ─┐                                            │
+   │   B industry seed ┼──►  RAG  ──►  Bot Q&amp;A (6-step method)     │
+   │   C earned (2/3/4/5) ─┘     ▲          │ pipeline JSON         │
+   │                            │          ▼                       │
+   │                            └──── deploy-success ◄── reconcile  │
+   │                              (scrub → generalize → embed)      │
+   └──────────────────────────────────────────────────────────────┘</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Composition -->
+  <section class="block" id="compose">
+    <div class="container">
+      <div class="eyebrow">How they combine</div>
+      <h2>One retrieval, three sources</h2>
+      <div class="grid-2">
+        <div class="panel">
+          <h3>At build-time</h3>
+          <p>A single retrieval pulls across all three:</p>
+          <ul class="clean">
+            <li><span class="src-pill A">A</span> offers candidate tables / fields</li>
+            <li><span class="src-pill B">B</span> supplies metric / KPI definitions and business rules</li>
+            <li><span class="src-pill C">C</span> supplies proven patterns + this tenant's customizations</li>
+          </ul>
+          <p style="margin-top:14px;margin-bottom:0;">That combination is how the BA-framed questions get grounded, table-name-free suggestions.</p>
+        </div>
+        <div class="panel">
+          <h3>At deploy-time, C flows back</h3>
+          <ul class="clean">
+            <li>Patterns grow <b>Type 2</b></li>
+            <li>Confirmed metric definitions enrich <b>Source B</b></li>
+            <li>Run telemetry grows <b>Type 5</b></li>
+          </ul>
+          <div class="callout green" style="margin-top:16px;">A and B are loaded ahead; C compounds them with every deploy. The store gets denser and more tenant-aware over time without anyone re-authoring the grounding.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sequencing -->
+  <section class="block" id="sequence">
+    <div class="container">
+      <div class="eyebrow">Order of operations</div>
+      <h2>Sequencing that falls out of the model</h2>
+      <div class="panel">
+        <div class="loop" style="margin-bottom:18px;">
+          <span class="step">1 · Load <span class="src-pill A">A</span> structural</span><span class="arrow">→</span>
+          <span class="step">2 · Load <span class="src-pill B">B</span> semantic</span><span class="arrow">→</span>
+          <span class="step">3 · Seed canonical Type 2 from B</span><span class="arrow">→</span>
+          <span class="step">4 · Turn on the bot — <span class="src-pill C">C</span> compounds</span>
+        </div>
+        <ul class="clean">
+          <li><b>Load A (structural) and B (semantic) first</b> — grounding the bot needs before its first question.</li>
+          <li><b>Seed a handful of canonical Type 2 patterns from B</b> — so the bot has something to retrieve on day one (breaks the empty-loop cold start).</li>
+          <li><b>Turn on the bot</b> — Source C begins compounding Types 2 / 3 / 4 / 5 with every deploy.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Guardrails -->
+  <section class="block" id="guardrails">
+    <div class="container">
+      <div class="eyebrow">Non-negotiable</div>
+      <h2>Guardrails on population</h2>
+      <div class="grid-3">
+        <div class="panel"><h4>Suggest, never auto-canonize</h4><p style="margin:0;color:var(--muted);">Q&amp;A-surfaced definitions go to the batch-proposed-diff queue, never straight into the canonical glossary — or the bot manufactures consensus from a handful of tenants.</p></div>
+        <div class="panel"><h4>Scrub before global</h4><p style="margin:0;color:var(--muted);">Tenant-specific values are redacted and generalized before any pattern or insight is promoted to a global namespace.</p></div>
+        <div class="panel"><h4>Never index the live schema</h4><p style="margin:0;color:var(--muted);">The connected instance schema is cached at query time, never embedded — indexing drift is the quiet way the store rots.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Source files -->
+  <section class="block" id="sources-files">
+    <div class="container">
+      <div class="eyebrow">Related artifacts</div>
+      <h2>Source &amp; companion files</h2>
+      <div class="files-grid">
+        <a class="file-card" href="rag_loading_tuning_architecture.html">
+          <span class="file-ico">DOC</span>
+          <span><span class="fname">RAG Loading &amp; Tuning Add-On</span><span class="fdesc">The five knowledge types, three regimes, and the store this strategy populates.</span></span>
+        </a>
+        <a class="file-card" href="anvizent-rag-loading-spec.md">
+          <span class="file-ico">MD</span>
+          <span><span class="fname">anvizent-rag-loading-spec.md</span><span class="fdesc">Canonical definition of the knowledge types, regimes, and eviction rules.</span></span>
+        </a>
+        <a class="file-card" href="semantic_metadata_catalog.xls">
+          <span class="file-ico">XLS</span>
+          <span><span class="fname">semantic_metadata_catalog.xls</span><span class="fdesc">Source B seed asset — glossary, synonyms, metrics, KPIs, business rules.</span></span>
+        </a>
+        <a class="file-card" href="anvizent-rag-addon-schema.sql">
+          <span class="file-ico">SQL</span>
+          <span><span class="fname">anvizent-rag-addon-schema.sql</span><span class="fdesc">Control DB + Knowledge Store DDL the populated chunks land in.</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="container">
+      <p>RAG Population Strategy • v1.0.0 • Standard HTML5 / CSS3 / ES6</p>
+      <p style="font-size:11px;">Author: <b>Anvizent AI Team</b> • The pipeline-JSON generation method is a fixed input • Zero external dependencies (GitHub Pages-ready)</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-theme');
+      localStorage.setItem('portal-theme', isLight ? 'light' : 'dark');
+      updateThemeUI(isLight);
+    }
+    function applyThemePreference() {
+      const saved = localStorage.getItem('portal-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isLight = saved === 'light' || (!saved && !prefersDark);
+      document.body.classList.toggle('light-theme', isLight);
+      updateThemeUI(isLight);
+    }
+    function updateThemeUI(isLight) {
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeText');
+      if (icon && text) { icon.innerText = isLight ? '🌙' : '☀️'; text.innerText = isLight ? 'Dark Theme' : 'Light Theme'; }
+    }
+    applyThemePreference();
+
+    document.querySelectorAll('#srcTabs .src-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const s = tab.dataset.src;
+        document.querySelectorAll('#srcTabs .src-tab').forEach(t => t.classList.toggle('active', t === tab));
+        document.querySelectorAll('.src-body').forEach(b => b.classList.toggle('active', b.dataset.src === s));
+      });
+    });
+
+    const navLinks = Array.from(document.querySelectorAll('#sectionNav a'));
+    const sections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { const id = '#' + e.target.id; navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id)); } });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sections.forEach(s => s && obs.observe(s));
+  </script>
+</body>
+</html>
