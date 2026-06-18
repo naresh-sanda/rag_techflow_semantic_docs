@@ -12,6 +12,22 @@ const data = {
       ["S05", "Snowflake", "Snowflake DWH", "xy12345.snowflakecomputing.com", "RAW_STAGE", "Hourly", "Snowpipe"]
     ]
   },
+  L1_Physical_Metadata: {
+    headers: ["Source System", "Object", "Column", "Datatype"],
+    rows: [
+      ["Salesforce", "ABSENTCHART", "EMP_ID", "NUMBER"],
+      ["Salesforce", "ABSENTCHART", "ABSENCE_DATE", "DATE"],
+      ["Salesforce", "ABSENTCHART", "ABSENCE_REASON", "VARCHAR"],
+      ["Epicor", "HR_ABSENCE", "EMPLOYEE_NUM", "INTEGER"],
+      ["Epicor", "HR_ABSENCE", "ABS_DATE", "DATE"],
+      ["Priority", "EMP_ABS", "EMP_NO", "VARCHAR"],
+      ["Priority", "EMP_ABS", "LEAVE_DT", "DATE"],
+      ["SAP", "PA2001", "PERNR", "NUMC"],
+      ["SAP", "PA2001", "ABWTG", "DATS"],
+      ["Snowflake", "FCT_REVENUE", "EMPLOYEE_ID", "INTEGER"],
+      ["Snowflake", "FCT_REVENUE", "NET_AMOUNT", "NUMBER"]
+    ]
+  },
   L2_Standardized_Attributes: {
     headers: ["Salesforce Column", "Epicor Column", "Priority Column", "SAP Column", "Snowflake Column", "Standard Business Attribute", "Datatype", "Confidence", "Reviewed By"],
     rows: [
@@ -20,6 +36,26 @@ const data = {
       ["AMOUNT", "INVOICE_AMT", "INV_AMT", "WRBTR", "NET_AMOUNT", "Revenue Amount", "DECIMAL", "high", "catalog-steward@anvizent.com"],
       ["DEPT_NAME", "DEPT_DESC", "DEPT_NM", "IDGEH", "DEPARTMENT_NAME", "Department Name", "VARCHAR", "high", "catalog-steward@anvizent.com"],
       ["SKU_QTY", "STOCK_QTY", "QTY_ON_HAND", "LABST", "ON_HAND_QTY", "Inventory On-Hand Quantity", "INTEGER", "high", "catalog-steward@anvizent.com"]
+    ]
+  },
+  L3_Glossary: {
+    headers: ["Term", "Definition", "Business Domain"],
+    rows: [
+      ["Employee", "Individual employed by the organization", "Human Resources"],
+      ["Absence", "Period when an employee is unavailable for scheduled work", "Human Resources"],
+      ["Revenue", "Inflow of economic benefits from primary sales activities", "Finance"],
+      ["Discount", "Reduction in the standard price of goods or services", "Sales"],
+      ["Inventory", "Stock of raw materials, work-in-progress, or finished goods", "Inventory"]
+    ]
+  },
+  L3_Synonyms: {
+    headers: ["Canonical Term", "Synonyms"],
+    rows: [
+      ["Employee", "Worker, Associate, Staff, Personnel"],
+      ["Revenue", "Sales, Turnover, Earnings, Income"],
+      ["Absence", "Leave, Time Off, Sick Day, Absenteeism"],
+      ["Discount", "Markdown, Rebate, Price Reduction"],
+      ["Department", "Division, Unit, Org Unit, Branch"]
     ]
   },
   L3_Semantic_Entities: {
@@ -70,11 +106,40 @@ const data = {
       ["On-Hand Quantity", "Databricks", "DM_INVENTORY_POSITION", "ON_HAND_QTY", "SUM"]
     ]
   },
+  L3_KPI_Definitions: {
+    headers: ["Metric", "Formula", "Grain"],
+    rows: [
+      ["Absence Count", "COUNT(absence_id)", "Daily"],
+      ["Revenue", "SUM(invoice_amount)", "Monthly"],
+      ["Employee Count", "COUNT(DISTINCT employee_id)", "Daily"],
+      ["Discount Rate", "AVG(discount_percentage)", "Monthly"],
+      ["On-Hand Quantity", "SUM(qty_on_hand)", "Daily"]
+    ]
+  },
+  L3_Business_Rules: {
+    headers: ["Rule ID", "Entity", "Rule Name", "Rule Logic"],
+    rows: [
+      ["BR001", "Employee Absence", "Valid Absence", "absence_hours > 0"],
+      ["BR002", "Revenue", "Net Revenue", "gross_revenue - tax"],
+      ["BR003", "Discount", "High Discount Flag", "discount_rate > 0.15"],
+      ["BR004", "Inventory Position", "Out of Stock Flag", "on_hand_quantity == 0"]
+    ]
+  },
   L3_Relationships: {
     headers: ["Parent Entity", "Child Entity", "Relationship"],
     rows: [
       ["Employee", "Employee Absence", "One-To-Many"],
       ["Department", "Employee", "One-To-Many"]
+    ]
+  },
+  L3_Data_Quality_Rules: {
+    headers: ["Entity", "Attribute", "Rule"],
+    rows: [
+      ["Employee", "Employee ID", "Not Null"],
+      ["Employee", "Email", "Valid Email Format"],
+      ["Revenue", "Amount", "> 0"],
+      ["Discount", "Discount Rate", "Between 0 and 1"],
+      ["Inventory Position", "On-Hand Quantity", ">= 0"]
     ]
   },
   DWH_Dimensions_Facts: {

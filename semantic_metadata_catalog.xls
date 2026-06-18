@@ -7,7 +7,7 @@
  xmlns:html="http://www.w3.org/TR/REC-html40">
  <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
   <Author>Antigravity AI</Author>
-  <Created>2026-06-18T12:32:22.298Z</Created>
+  <Created>2026-06-18T12:44:47.120Z</Created>
  </DocumentProperties>
  <Styles>
   <Style ss:ID="Default" ss:Name="Normal">
@@ -91,6 +91,82 @@
    </Row>
   </Table>
  </Worksheet>
+ <Worksheet ss:Name="L1_Physical_Metadata">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Source System</Data></Cell>
+    <Cell><Data ss:Type="String">Object</Data></Cell>
+    <Cell><Data ss:Type="String">Column</Data></Cell>
+    <Cell><Data ss:Type="String">Datatype</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Salesforce</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENTCHART</Data></Cell>
+    <Cell><Data ss:Type="String">EMP_ID</Data></Cell>
+    <Cell><Data ss:Type="String">NUMBER</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Salesforce</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENTCHART</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENCE_DATE</Data></Cell>
+    <Cell><Data ss:Type="String">DATE</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Salesforce</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENTCHART</Data></Cell>
+    <Cell><Data ss:Type="String">ABSENCE_REASON</Data></Cell>
+    <Cell><Data ss:Type="String">VARCHAR</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Epicor</Data></Cell>
+    <Cell><Data ss:Type="String">HR_ABSENCE</Data></Cell>
+    <Cell><Data ss:Type="String">EMPLOYEE_NUM</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Epicor</Data></Cell>
+    <Cell><Data ss:Type="String">HR_ABSENCE</Data></Cell>
+    <Cell><Data ss:Type="String">ABS_DATE</Data></Cell>
+    <Cell><Data ss:Type="String">DATE</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Priority</Data></Cell>
+    <Cell><Data ss:Type="String">EMP_ABS</Data></Cell>
+    <Cell><Data ss:Type="String">EMP_NO</Data></Cell>
+    <Cell><Data ss:Type="String">VARCHAR</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Priority</Data></Cell>
+    <Cell><Data ss:Type="String">EMP_ABS</Data></Cell>
+    <Cell><Data ss:Type="String">LEAVE_DT</Data></Cell>
+    <Cell><Data ss:Type="String">DATE</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">SAP</Data></Cell>
+    <Cell><Data ss:Type="String">PA2001</Data></Cell>
+    <Cell><Data ss:Type="String">PERNR</Data></Cell>
+    <Cell><Data ss:Type="String">NUMC</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">SAP</Data></Cell>
+    <Cell><Data ss:Type="String">PA2001</Data></Cell>
+    <Cell><Data ss:Type="String">ABWTG</Data></Cell>
+    <Cell><Data ss:Type="String">DATS</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Snowflake</Data></Cell>
+    <Cell><Data ss:Type="String">FCT_REVENUE</Data></Cell>
+    <Cell><Data ss:Type="String">EMPLOYEE_ID</Data></Cell>
+    <Cell><Data ss:Type="String">INTEGER</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Snowflake</Data></Cell>
+    <Cell><Data ss:Type="String">FCT_REVENUE</Data></Cell>
+    <Cell><Data ss:Type="String">NET_AMOUNT</Data></Cell>
+    <Cell><Data ss:Type="String">NUMBER</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
  <Worksheet ss:Name="L2_Standardized_Attributes">
   <Table>
    <Row ss:Height="22" ss:StyleID="HeaderStyle">
@@ -158,6 +234,68 @@
     <Cell><Data ss:Type="String">INTEGER</Data></Cell>
     <Cell><Data ss:Type="String">high</Data></Cell>
     <Cell><Data ss:Type="String">catalog-steward@anvizent.com</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Glossary">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Term</Data></Cell>
+    <Cell><Data ss:Type="String">Definition</Data></Cell>
+    <Cell><Data ss:Type="String">Business Domain</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee</Data></Cell>
+    <Cell><Data ss:Type="String">Individual employed by the organization</Data></Cell>
+    <Cell><Data ss:Type="String">Human Resources</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Absence</Data></Cell>
+    <Cell><Data ss:Type="String">Period when an employee is unavailable for scheduled work</Data></Cell>
+    <Cell><Data ss:Type="String">Human Resources</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Inflow of economic benefits from primary sales activities</Data></Cell>
+    <Cell><Data ss:Type="String">Finance</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Discount</Data></Cell>
+    <Cell><Data ss:Type="String">Reduction in the standard price of goods or services</Data></Cell>
+    <Cell><Data ss:Type="String">Sales</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Inventory</Data></Cell>
+    <Cell><Data ss:Type="String">Stock of raw materials, work-in-progress, or finished goods</Data></Cell>
+    <Cell><Data ss:Type="String">Inventory</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Synonyms">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Canonical Term</Data></Cell>
+    <Cell><Data ss:Type="String">Synonyms</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee</Data></Cell>
+    <Cell><Data ss:Type="String">Worker, Associate, Staff, Personnel</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Sales, Turnover, Earnings, Income</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Absence</Data></Cell>
+    <Cell><Data ss:Type="String">Leave, Time Off, Sick Day, Absenteeism</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Discount</Data></Cell>
+    <Cell><Data ss:Type="String">Markdown, Rebate, Price Reduction</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Department</Data></Cell>
+    <Cell><Data ss:Type="String">Division, Unit, Org Unit, Branch</Data></Cell>
    </Row>
   </Table>
  </Worksheet>
@@ -353,6 +491,74 @@
    </Row>
   </Table>
  </Worksheet>
+ <Worksheet ss:Name="L3_KPI_Definitions">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Metric</Data></Cell>
+    <Cell><Data ss:Type="String">Formula</Data></Cell>
+    <Cell><Data ss:Type="String">Grain</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Absence Count</Data></Cell>
+    <Cell><Data ss:Type="String">COUNT(absence_id)</Data></Cell>
+    <Cell><Data ss:Type="String">Daily</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">SUM(invoice_amount)</Data></Cell>
+    <Cell><Data ss:Type="String">Monthly</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee Count</Data></Cell>
+    <Cell><Data ss:Type="String">COUNT(DISTINCT employee_id)</Data></Cell>
+    <Cell><Data ss:Type="String">Daily</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Discount Rate</Data></Cell>
+    <Cell><Data ss:Type="String">AVG(discount_percentage)</Data></Cell>
+    <Cell><Data ss:Type="String">Monthly</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">On-Hand Quantity</Data></Cell>
+    <Cell><Data ss:Type="String">SUM(qty_on_hand)</Data></Cell>
+    <Cell><Data ss:Type="String">Daily</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Business_Rules">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Rule ID</Data></Cell>
+    <Cell><Data ss:Type="String">Entity</Data></Cell>
+    <Cell><Data ss:Type="String">Rule Name</Data></Cell>
+    <Cell><Data ss:Type="String">Rule Logic</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">BR001</Data></Cell>
+    <Cell><Data ss:Type="String">Employee Absence</Data></Cell>
+    <Cell><Data ss:Type="String">Valid Absence</Data></Cell>
+    <Cell><Data ss:Type="String">absence_hours &gt; 0</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">BR002</Data></Cell>
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Net Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">gross_revenue - tax</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">BR003</Data></Cell>
+    <Cell><Data ss:Type="String">Discount</Data></Cell>
+    <Cell><Data ss:Type="String">High Discount Flag</Data></Cell>
+    <Cell><Data ss:Type="String">discount_rate &gt; 0.15</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">BR004</Data></Cell>
+    <Cell><Data ss:Type="String">Inventory Position</Data></Cell>
+    <Cell><Data ss:Type="String">Out of Stock Flag</Data></Cell>
+    <Cell><Data ss:Type="String">on_hand_quantity == 0</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
  <Worksheet ss:Name="L3_Relationships">
   <Table>
    <Row ss:Height="22" ss:StyleID="HeaderStyle">
@@ -369,6 +575,40 @@
     <Cell><Data ss:Type="String">Department</Data></Cell>
     <Cell><Data ss:Type="String">Employee</Data></Cell>
     <Cell><Data ss:Type="String">One-To-Many</Data></Cell>
+   </Row>
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="L3_Data_Quality_Rules">
+  <Table>
+   <Row ss:Height="22" ss:StyleID="HeaderStyle">
+    <Cell><Data ss:Type="String">Entity</Data></Cell>
+    <Cell><Data ss:Type="String">Attribute</Data></Cell>
+    <Cell><Data ss:Type="String">Rule</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee</Data></Cell>
+    <Cell><Data ss:Type="String">Employee ID</Data></Cell>
+    <Cell><Data ss:Type="String">Not Null</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Employee</Data></Cell>
+    <Cell><Data ss:Type="String">Email</Data></Cell>
+    <Cell><Data ss:Type="String">Valid Email Format</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Revenue</Data></Cell>
+    <Cell><Data ss:Type="String">Amount</Data></Cell>
+    <Cell><Data ss:Type="String">&gt; 0</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Discount</Data></Cell>
+    <Cell><Data ss:Type="String">Discount Rate</Data></Cell>
+    <Cell><Data ss:Type="String">Between 0 and 1</Data></Cell>
+   </Row>
+   <Row ss:Height="18" ss:StyleID="DataStyle">
+    <Cell><Data ss:Type="String">Inventory Position</Data></Cell>
+    <Cell><Data ss:Type="String">On-Hand Quantity</Data></Cell>
+    <Cell><Data ss:Type="String">&gt;= 0</Data></Cell>
    </Row>
   </Table>
  </Worksheet>
