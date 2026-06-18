@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Semantic NLP & RAG Architecture Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Palette */
+      --primary: #f47920;
+      --primary-light: #ffb066;
+      --primary-glow: rgba(244, 121, 32, 0.15);
+      
+      --terracotta: #c2410c;
+      --terracotta-bg: #ffedd5;
+      
+      --indigo: #6366f1;
+      --indigo-glow: rgba(99, 102, 241, 0.15);
+      
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.15);
+
+      /* Dark Theme (Default) */
+      --bg: #0b0f19;
+      --bg-grid: rgba(255, 255, 255, 0.02);
+      --card: #111827;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #d1d5db;
+      --navy: #f9fafb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --badge-bg: #1e293b;
+      
+      --shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 2px 8px -1px rgba(0, 0, 0, 0.3);
+      --shadow-hover: 0 25px 40px -10px rgba(244, 121, 32, 0.15), 0 10px 20px -5px rgba(0, 0, 0, 0.4);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body.light-theme {
+      /* Light Theme */
+      --bg: #f8fafc;
+      --bg-grid: rgba(15, 23, 42, 0.015);
+      --card: #ffffff;
+      --card-border: rgba(15, 23, 42, 0.06);
+      --text: #475569;
+      --navy: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --badge-bg: #f1f5f9;
+      
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-hover: 0 20px 25px -5px rgba(99, 102, 241, 0.1), 0 10px 10px -5px rgba(99, 102, 241, 0.04);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      background-image: 
+        linear-gradient(to right, var(--bg-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+      background-size: 40px 40px;
+      color: var(--text);
+      line-height: 1.6;
+      transition: var(--transition);
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Space Grotesk', sans-serif;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      margin-top: 0;
+      transition: var(--transition);
+    }
+
+    .editorial-font {
+      font-family: 'Fraunces', Georgia, serif;
+      font-style: italic;
+    }
+
+    code, pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 14px;
+    }
+
+    a {
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    /* Outer Wrapper */
+    .portal-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* Header & Navbar */
+    header.portal-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 60px;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      letter-spacing: 0.05em;
+    }
+
+    .logo-text h2 {
+      font-size: 20px;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .logo-text p {
+      margin: 2px 0 0;
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    /* Theme Switcher Button */
+    .theme-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      color: var(--navy);
+      padding: 8px 16px;
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    /* Hero Section */
+    .hero-section {
+      text-align: center;
+      margin-bottom: 70px;
+      position: relative;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: var(--primary-glow);
+      color: var(--primary);
+      border: 1px solid rgba(244, 121, 32, 0.3);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    body.light-theme .hero-tag {
+      background: var(--badge-bg);
+      color: var(--primary);
+      border-color: var(--border);
+    }
+
+    .hero-section h1 {
+      font-size: 48px;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero-section p {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 680px;
+      margin: 0 auto 40px;
+    }
+
+    /* Document Showcase Cards */
+    .doc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 60px;
+    }
+
+    .doc-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .doc-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      transition: var(--transition);
+    }
+
+    /* Cyberpunk Technical Theme Styling for Card */
+    .doc-card.tech-theme::before {
+      background: linear-gradient(to right, var(--primary), var(--primary-light));
+    }
+    
+    /* Editorial Theme Styling for Card */
+    .doc-card.edit-theme::before {
+      background: linear-gradient(to right, var(--indigo), #818cf8);
+    }
+
+    .doc-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .doc-card-badge {
+      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .tech-theme .doc-card-badge {
+      background: rgba(244, 121, 32, 0.15);
+      color: var(--primary-light);
+    }
+    body.light-theme .tech-theme .doc-card-badge {
+      background: #ffebd5;
+      color: #ea580c;
+    }
+
+    .edit-theme .doc-card-badge {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+    }
+    body.light-theme .edit-theme .doc-card-badge {
+      background: #e0e7ff;
+      color: #4f46e5;
+    }
+
+    .doc-card h3 {
+      font-size: 26px;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .doc-card p {
+      font-size: 15px;
+      color: var(--muted);
+      margin-bottom: 28px;
+      flex-grow: 1;
+    }
+
+    .doc-features-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 40px;
+      border-top: 1px dashed var(--border);
+      padding-top: 24px;
+    }
+
+    .doc-features-list li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .doc-features-list li svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .tech-theme li svg { color: var(--primary); }
+    .edit-theme li svg { color: var(--indigo); }
+
+    .launch-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .tech-theme .launch-btn {
+      background: var(--primary);
+      color: #fff;
+    }
+    .tech-theme .launch-btn:hover {
+      background: var(--primary-light);
+      box-shadow: 0 0 15px rgba(244, 121, 32, 0.4);
+    }
+
+    .edit-theme .launch-btn {
+      background: var(--indigo);
+      color: #fff;
+    }
+    .edit-theme .launch-btn:hover {
+      background: #818cf8;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+
+    /* Live Pipeline Status & Route Analyzer */
+    .dashboard-panel {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 36px;
+      box-shadow: var(--shadow);
+      margin-bottom: 60px;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+
+    .panel-header h3 {
+      font-size: 22px;
+      margin: 0;
+    }
+
+    .status-badge-container {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--badge-bg);
+      border: 1px solid var(--border);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      position: relative;
+    }
+
+    .status-dot::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: inherit;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(2.4); opacity: 0; }
+    }
+
+    /* Interactive Analyzer Area */
+    .analyzer-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 32px;
+    }
+
+    @media (max-width: 900px) {
+      .analyzer-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .presets-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .preset-btn {
+      background: var(--badge-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition);
+      color: var(--text);
+    }
+
+    .preset-btn:hover {
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .preset-btn.active {
+      background: var(--primary-glow);
+      border-color: var(--primary);
+      color: var(--navy);
+    }
+
+    body.light-theme .preset-btn.active {
+      background: var(--badge-bg);
+      border-color: var(--primary);
+    }
+
+    .preset-btn-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .preset-badge {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .preset-badge.rag { background: rgba(244, 121, 32, 0.15); color: var(--primary-light); }
+    body.light-theme .preset-badge.rag { background: #ffebd5; color: #ea580c; }
+    
+    .preset-badge.sql { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    body.light-theme .preset-badge.sql { background: #d1fae5; color: #059669; }
+
+    .preset-badge.hybrid { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; }
+    body.light-theme .preset-badge.hybrid { background: #e0e7ff; color: #4f46e5; }
+
+    .preset-desc {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Live Visual Flow Board */
+    .flow-display {
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 250px;
+    }
+
+    body.light-theme .flow-display {
+      background: #f1f5f9;
+    }
+
+    .flow-graph {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    /* Connecting path background */
+    .flow-graph::after {
+      content: '';
+      position: absolute;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: var(--border);
+      z-index: 1;
+    }
+
+    .flow-node {
+      position: relative;
+      z-index: 2;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--card);
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+
+    .flow-node.active {
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary);
+    }
+
+    .flow-node-label {
+      position: absolute;
+      top: 56px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .flow-node.active .flow-node-label {
+      color: var(--navy);
+    }
+
+    .flow-terminal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      flex-grow: 1;
+    }
+
+    .flow-terminal-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--primary);
+      margin-bottom: 8px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .flow-terminal-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      margin: 0;
+      color: var(--navy);
+      min-height: 50px;
+    }
+
+    /* Footer */
+    footer.portal-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 40px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    footer.portal-footer p {
+      margin: 0 0 10px;
+    }
+
+    /* Responsive Grid for Card Layout */
+    @media (max-width: 768px) {
+      .doc-grid {
+        grid-template-columns: 1fr;
+      }
+      .hero-section h1 {
+        font-size: 36px;
+      }
+      .hero-section p {
+        font-size: 16px;
+      }
+      header.portal-nav {
+        margin-bottom: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="portal-container">
+    
+    <!-- Navigation -->
+    <header class="portal-nav">
+      <div class="logo-container">
+        <div class="logo-badge">RAG</div>
+        <div class="logo-text">
+          <h2>Semantic Assistant</h2>
+          <p>NLP & RAG Reference Hub</p>
+        </div>
+      </div>
+      
+      <button class="theme-toggle-btn" onclick="toggleTheme()">
+        <span id="themeIcon">☀️</span>
+        <span id="themeText">Light Theme</span>
+      </button>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-tag">Deployment Live • Static Pages Hub</div>
+      <h1>Enterprise Semantic NLP &<br><span class="editorial-font">Retrieval-Augmented Generation</span> Portal</h1>
+      <p>A comprehensive design specification and developer dashboard documenting semantic routing, unified catalogs, and distributed data pipeline execution paths.</p>
+    </section>
+
+    <!-- Document Showcase Grid -->
+    <section class="doc-grid">
+      
+      <!-- Tech-Dark Dashboard Portal Card -->
+      <div class="doc-card tech-theme">
+        <div>
+          <div class="doc-card-badge">Technical Reference</div>
+          <h3>Technical Architecture & Pipeline Reference</h3>
+          <p>High-fidelity system overview, containing comprehensive data mapping dictionaries, standardized attributes, and functional descriptions of the query planner.</p>
+          
+          <ul class="doc-features-list">
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Cyberpunk Dark Technical Dashboard theme</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Interactive Step-by-Step SQL / RAG Pipeline Simulator</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Fuzzy search and table record filter utilities</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Detailed document registry schema tables</span>
+            </li>
+          </ul>
+        </div>
+        <a href="Enterprise_Semantic_NLP_RAG_Architecture.html" class="launch-btn">
+          Launch Technical Reference ➔
+        </a>
+      </div>
+
+      <!-- Minimalist Editorial Portal Card -->
+      <div class="doc-card edit-theme">
+        <div>
+          <div class="doc-card-badge">Editorial Brief</div>
+          <h3>Semantic Assistant Architectural Design Brief</h3>
+          <p>Architectural narrative and executive explanation focusing on functional layers, user experience models, unified semantic catalog integration, and FAQ structures.</p>
+          
+          <ul class="doc-features-list">
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Editorial Book/Journal Typography & Light-minimal design</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Alternative layout and dynamic workflow diagram rendering</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Interactive routing step walkthrough blocks</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Faceted FAQ and system definitions accordions</span>
+            </li>
+          </ul>
+        </div>
+        <a href="semantic_assistant_architecture.html" class="launch-btn">
+          Open Editorial Brief ➔
+        </a>
+      </div>
+
+    </section>
+
+    <!-- Live Routing Status Dashboard -->
+    <section class="dashboard-panel">
+      <div class="panel-header">
+        <h3>✨ Dynamic Routing Analyzer</h3>
+        <div class="status-badge-container">
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>PLANNER: ONLINE</span>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>VECTOR DB: ONLINE</span>
+          </div>
+          <div class="status-pill">
+            <span class="status-dot"></span>
+            <span>ROUTING ENGINE: STANDBY</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="analyzer-layout">
+        <!-- Preset Questions -->
+        <div class="presets-container">
+          <button class="preset-btn active" onclick="activatePreset('hr')">
+            <div class="preset-btn-title">
+              <span>Employee Absences Analysis</span>
+              <span class="preset-badge hybrid">Hybrid</span>
+            </div>
+            <div class="preset-desc">"Why did employee absences increase last month in EMEA region?"</div>
+          </button>
+          
+          <button class="preset-btn" onclick="activatePreset('fin')">
+            <div class="preset-btn-title">
+              <span>Departmental Headcount Query</span>
+              <span class="preset-badge sql">SQL Facts</span>
+            </div>
+            <div class="preset-desc">"How many full-time staff do we have in the Finance division?"</div>
+          </button>
+
+          <button class="preset-btn" onclick="activatePreset('sales')">
+            <div class="preset-btn-title">
+              <span>Sales Discount Policy Policy</span>
+              <span class="preset-badge rag">RAG Doc</span>
+            </div>
+            <div class="preset-desc">"What is the standard policy regarding discount authorizations?"</div>
+          </button>
+        </div>
+
+        <!-- Analyzer Screen Output -->
+        <div class="flow-display">
+          <div class="flow-graph">
+            <div class="flow-node active" id="node-q">
+              ❓
+              <div class="flow-node-label">Query</div>
+            </div>
+            <div class="flow-node" id="node-p">
+              🧠
+              <div class="flow-node-label">Planner</div>
+            </div>
+            <div class="flow-node" id="node-r">
+              🔀
+              <div class="flow-node-label">Router</div>
+            </div>
+            <div class="flow-node" id="node-o">
+              🎯
+              <div class="flow-node-label">Output</div>
+            </div>
+          </div>
+
+          <div class="flow-terminal">
+            <div class="flow-terminal-title" id="flow-title">Pipeline Trace Status</div>
+            <p class="flow-terminal-text" id="flow-text">
+              Select a preset scenario on the left to trace the semantic NLP route and check execution paths.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Portal Footer -->
+    <footer class="portal-footer">
+      <p>Enterprise RAG Knowledge Base Architecture Reference Portal • Standard HTML5 / CSS3 / ES6</p>
+      <p style="font-size: 11px;">Designed for high-performance static hosting on GitHub Pages with zero external dependencies.</p>
+    </footer>
+
+  </div>
+
+  <script>
+    const scenarios = {
+      hr: {
+        title: "HYBRID ROUTE ACTIVE (SQL + VECTOR SEARCH)",
+        text: "Analyzing Query... Match found in Databricks Absences schema and Policy Handbook. Universal Planner generated a Multi-Execution Plan combining Databricks SQL aggregates with Pinecone vector similarity search.",
+        nodes: ['node-q', 'node-p', 'node-r', 'node-o']
+      },
+      fin: {
+        title: "SQL ROUTE ACTIVE (STRUCTURED DATABASE ONLY)",
+        text: "Analyzing Query... Match found in 'employees' metadata registry table. SQL schema resolved successfully. Plan bypassing Vector Database search to query directly from the Databricks cluster.",
+        nodes: ['node-q', 'node-p', 'node-r', 'node-o']
+      },
+      sales: {
+        title: "RAG ROUTE ACTIVE (UNSTRUCTURED KNOWLEDGE ONLY)",
+        text: "Analyzing Query... No structural SQL mappings found for standard policies. Routed queries directly to Pinecone Vector DB to extract policy chunks. Returning generated LLM contextual answer.",
+        nodes: ['node-q', 'node-p', 'node-r', 'node-o']
+      }
+    };
+
+    function activatePreset(type) {
+      // Toggle button states
+      const buttons = document.querySelectorAll('.preset-btn');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+
+      const data = scenarios[type];
+      
+      // Update terminal text
+      const termTitle = document.getElementById('flow-title');
+      const termText = document.getElementById('flow-text');
+      
+      termTitle.innerText = "Analyzing semantic route...";
+      termText.innerText = "Processing request in semantic engine...";
+      
+      // Reset all nodes
+      const nodes = ['node-q', 'node-p', 'node-r', 'node-o'];
+      nodes.forEach(id => {
+        document.getElementById(id).classList.remove('active');
+        document.getElementById(id).style.boxShadow = '';
+      });
+
+      // Animate node traversal
+      let step = 0;
+      function highlightNext() {
+        if (step < data.nodes.length) {
+          const id = data.nodes[step];
+          const node = document.getElementById(id);
+          node.classList.add('active');
+          
+          if (type === 'hr') {
+            node.style.boxShadow = '0 0 12px var(--indigo)';
+            node.style.borderColor = 'var(--indigo)';
+          } else if (type === 'fin') {
+            node.style.boxShadow = '0 0 12px var(--green)';
+            node.style.borderColor = 'var(--green)';
+          } else {
+            node.style.boxShadow = '0 0 12px var(--primary)';
+            node.style.borderColor = 'var(--primary)';
+          }
+
+          step++;
+          setTimeout(highlightNext, 250);
+        } else {
+          // Update final terminal status
+          termTitle.innerText = data.title;
+          termText.innerText = data.text;
+          
+          if (type === 'hr') {
+            termTitle.style.color = 'var(--indigo)';
+          } else if (type === 'fin') {
+            termTitle.style.color = 'var(--green)';
+          } else {
+            termTitle.style.color = 'var(--primary)';
+          }
+        }
+      }
+      
+      setTimeout(highlightNext, 200);
+    }
+
+    // Theme Switcher Logic
+    function toggleTheme() {
+      const body = document.body;
+      body.classList.toggle('light-theme');
+      
+      const isLight = body.classList.contains('light-theme');
+      localStorage.setItem('portal-theme', isLight ? 'light' : 'dark');
+      
+      updateThemeUI(isLight);
+    }
+
+    function applyThemePreference() {
+      const savedTheme = localStorage.getItem('portal-theme');
+      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      const isLight = savedTheme === 'light' || (!savedTheme && !systemPrefersDark);
+      if (isLight) {
+        document.body.classList.add('light-theme');
+      } else {
+        document.body.classList.remove('light-theme');
+      }
+      updateThemeUI(isLight);
+    }
+
+    function updateThemeUI(isLight) {
+      const icon = document.getElementById('themeIcon');
+      const text = document.getElementById('themeText');
+      if (icon && text) {
+        icon.innerText = isLight ? '🌙' : '☀️';
+        text.innerText = isLight ? 'Dark Theme' : 'Light Theme';
+      }
+    }
+
+    // On Load
+    applyThemePreference();
+    setTimeout(() => {
+      activatePreset('hr');
+    }, 400);
+  </script>
+</body>
+</html>
