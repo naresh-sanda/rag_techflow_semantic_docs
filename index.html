@@ -417,6 +417,48 @@
       box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
     }
 
+    /* Agent Build Process Flow Card */
+    .agent-theme::before {
+      background: linear-gradient(to right, var(--indigo), var(--primary));
+    }
+    .agent-theme .doc-card-badge {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+    }
+    body.light-theme .agent-theme .doc-card-badge {
+      background: #e0e7ff;
+      color: #4f46e5;
+    }
+    .agent-theme li svg { color: var(--indigo); }
+    .agent-theme .launch-btn {
+      background: linear-gradient(to right, var(--indigo), var(--primary));
+      color: #fff;
+    }
+    .agent-theme .launch-btn:hover {
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+    }
+
+    /* RAG Reconciliation Card */
+    .reconcile-theme::before {
+      background: linear-gradient(to right, var(--terracotta), var(--indigo));
+    }
+    .reconcile-theme .doc-card-badge {
+      background: rgba(194, 65, 12, 0.15);
+      color: #fb923c;
+    }
+    body.light-theme .reconcile-theme .doc-card-badge {
+      background: #ffedd5;
+      color: #c2410c;
+    }
+    .reconcile-theme li svg { color: var(--terracotta); }
+    .reconcile-theme .launch-btn {
+      background: linear-gradient(to right, var(--terracotta), var(--indigo));
+      color: #fff;
+    }
+    .reconcile-theme .launch-btn:hover {
+      box-shadow: 0 0 15px rgba(194, 65, 12, 0.4);
+    }
+
     /* Live Pipeline Status & Route Analyzer */
     .dashboard-panel {
       background: var(--card);
@@ -779,6 +821,68 @@
         </div>
         <a href="rag_population_strategy.html?v=1.0.0" class="launch-btn">
           Open Population Strategy ➔
+        </a>
+      </div>
+
+      <!-- Agent Build Process Flow Card -->
+      <div class="doc-card agent-theme">
+        <div>
+          <div class="doc-card-badge">Agent Build Flow</div>
+          <h3>Agent Build Process Flow</h3>
+          <p>The ordered method the Data Engineering Bot follows to turn a business question into datamart / pipeline JSON — RAG-grounded at every step and adapted to the user's role.</p>
+
+          <ul class="doc-features-list">
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>The "state &amp; dispute" RAG-aware ask/confirm pattern</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Role-adaptive questioning (business / analyst / engineer)</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>16-step flow: scope → warehouse → datamart JSON</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Datamart reuse evaluation (extend, don't rebuild)</span>
+            </li>
+          </ul>
+        </div>
+        <a href="rag_agent_build_process_flow.html?v=1.0.0" class="launch-btn">
+          Open Agent Build Flow ➔
+        </a>
+      </div>
+
+      <!-- RAG Reconciliation Card -->
+      <div class="doc-card reconcile-theme">
+        <div>
+          <div class="doc-card-badge">Reconciliation</div>
+          <h3>RAG Reconciliation — Decision Record</h3>
+          <p>The canonical resolution for every conflict across the Loading &amp; Tuning, Population, and Agent Build specs — 13 decisions and one new knowledge type that keep the three consistent.</p>
+
+          <ul class="doc-features-list">
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Type 6 — resolved contextual semantics (DW/datamart catalog)</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Usage-based capture &amp; emergent canonicals</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Scope taxonomy &amp; role ownership</span>
+            </li>
+            <li>
+              <svg fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+              <span>Decision matrix with per-conflict resolution</span>
+            </li>
+          </ul>
+        </div>
+        <a href="rag_reconciliation_decisions.html?v=1.0.0" class="launch-btn">
+          Open Reconciliation ➔
         </a>
       </div>
 

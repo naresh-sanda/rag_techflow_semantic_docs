@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG Reconciliation — Decision Record</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #f47920; --primary-light: #ffb066; --primary-glow: rgba(244,121,32,0.15);
+      --terracotta: #c2410c; --indigo: #6366f1; --indigo-glow: rgba(99,102,241,0.15);
+      --green: #10b981; --green-glow: rgba(16,185,129,0.15); --amber: #f59e0b; --red: #ef4444;
+      --bg: #0b0f19; --bg-grid: rgba(255,255,255,0.02); --card: #111827; --card-2: #0e1524;
+      --card-border: rgba(255,255,255,0.08); --text: #d1d5db; --navy: #f9fafb; --muted: #9ca3af;
+      --border: #1f2937; --badge-bg: #1e293b; --code-bg: #0a0e17;
+      --shadow: 0 4px 20px -2px rgba(0,0,0,0.5), 0 2px 8px -1px rgba(0,0,0,0.3);
+      --shadow-hover: 0 25px 40px -10px rgba(244,121,32,0.15), 0 10px 20px -5px rgba(0,0,0,0.4);
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    body.light-theme {
+      --bg: #f8fafc; --bg-grid: rgba(15,23,42,0.015); --card: #ffffff; --card-2: #f8fafc;
+      --card-border: rgba(15,23,42,0.06); --text: #475569; --navy: #0f172a; --muted: #64748b;
+      --border: #e2e8f0; --badge-bg: #f1f5f9; --code-bg: #0f172a;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --shadow-hover: 0 20px 25px -5px rgba(99,102,241,0.1), 0 10px 10px -5px rgba(99,102,241,0.04);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg);
+      background-image: linear-gradient(to right, var(--bg-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+      background-size: 40px 40px; color: var(--text); line-height: 1.65; transition: var(--transition); overflow-x: hidden; }
+    h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; color: var(--navy); letter-spacing: -0.02em; margin-top: 0; }
+    .editorial-font { font-family: 'Fraunces', Georgia, serif; font-style: italic; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    a { text-decoration: none; transition: var(--transition); color: var(--primary); }
+    a:hover { color: var(--primary-light); }
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+    header.topbar { position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .topbar-inner { max-width: 1140px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .logo-container { display: flex; align-items: center; gap: 12px; }
+    .logo-badge { background: var(--primary); color: #fff; font-weight: 700; font-family: 'Space Grotesk', sans-serif; padding: 6px 12px; border-radius: 6px; font-size: 14px; letter-spacing: 0.05em; }
+    .logo-text h2 { font-size: 17px; margin: 0; line-height: 1; }
+    .logo-text p { margin: 3px 0 0; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .pill-link, .theme-toggle-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--card-border); color: var(--navy); padding: 8px 16px; border-radius: 30px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: var(--shadow); transition: var(--transition); font-family: 'Inter', sans-serif; }
+    .pill-link:hover, .theme-toggle-btn:hover { border-color: var(--primary); transform: translateY(-2px); color: var(--navy); }
+
+    .hero { text-align: center; padding: 70px 0 30px; }
+    .hero-tag { display: inline-block; background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(244,121,32,0.3); font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 20px; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 24px; }
+    body.light-theme .hero-tag { background: var(--badge-bg); border-color: var(--border); }
+    .hero h1 { font-size: 44px; line-height: 1.1; margin: 0 auto 18px; max-width: 860px; }
+    .hero p.lede { font-size: 18px; color: var(--muted); max-width: 760px; margin: 0 auto; }
+    .hero .meta { font-size: 13px; color: var(--muted); margin-top: 18px; }
+    .hero .meta b { color: var(--navy); }
+
+    .section-nav { position: sticky; top: 64px; z-index: 90; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 14px 0; margin: 24px 0 10px; background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(8px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .section-nav a { font-size: 12.5px; font-weight: 600; color: var(--muted); padding: 6px 13px; border-radius: 20px; border: 1px solid transparent; }
+    .section-nav a:hover { color: var(--navy); background: var(--badge-bg); }
+    .section-nav a.active { color: var(--primary); border-color: rgba(244,121,32,0.35); background: var(--primary-glow); }
+
+    section.block { padding: 54px 0 10px; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; }
+    section.block > .container > h2 { font-size: 32px; margin-bottom: 14px; }
+    .section-lede { font-size: 16px; color: var(--muted); max-width: 780px; margin: 0 0 32px; }
+
+    .panel { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px; box-shadow: var(--shadow); margin-bottom: 24px; }
+    .panel h3 { font-size: 20px; margin-bottom: 12px; }
+    .panel p { margin: 0 0 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    @media (max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--primary-glow); padding: 16px 20px; border-radius: 0 10px 10px 0; margin: 0 0 20px; font-size: 14.5px; }
+    .callout.indigo { border-left-color: var(--indigo); background: var(--indigo-glow); }
+    .callout.green { border-left-color: var(--green); background: var(--green-glow); }
+    .callout b { color: var(--navy); }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13.5px; min-width: 640px; }
+    thead th { background: var(--badge-bg); color: var(--navy); text-align: left; font-family: 'Space Grotesk', sans-serif; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+    tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: top; color: var(--text); }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: color-mix(in srgb, var(--badge-bg) 50%, transparent); }
+    td code, p code, li code { background: var(--badge-bg); padding: 1px 6px; border-radius: 4px; font-size: 12.5px; color: var(--primary-light); }
+    body.light-theme td code, body.light-theme p code, body.light-theme li code { color: var(--terracotta); }
+    .cid { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary); white-space: nowrap; }
+
+    ul.clean { list-style: none; padding: 0; margin: 0; }
+    ul.clean li { padding: 7px 0 7px 26px; position: relative; font-size: 14.5px; border-bottom: 1px dashed var(--border); }
+    ul.clean li:last-child { border-bottom: none; }
+    ul.clean li::before { content: '▸'; position: absolute; left: 4px; color: var(--primary); }
+
+    .dec { border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; margin-bottom: 14px; background: var(--card-2); }
+    .dec h4 { margin: 0 0 6px; font-size: 16px; }
+    .dec h4 .cid { margin-right: 8px; }
+    .dec p { margin: 0; font-size: 14.5px; color: var(--text); }
+
+    .file-card { display: flex; gap: 14px; align-items: flex-start; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: var(--transition); }
+    .file-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+    .file-ico { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; padding: 6px 8px; border-radius: 6px; background: var(--primary-glow); color: var(--primary); flex-shrink: 0; }
+    .file-card .fname { font-weight: 600; color: var(--navy); font-size: 14px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+    .file-card .fdesc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .files-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; }
+
+    footer.foot { border-top: 1px solid var(--border); margin-top: 60px; padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
+    footer.foot b { color: var(--navy); }
+
+    @media (max-width: 700px) { .hero h1 { font-size: 30px; } .logo-text { display: none; } section.block > .container > h2 { font-size: 24px; } }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo-container">
+        <div class="logo-badge">RAG</div>
+        <div class="logo-text">
+          <h2>RAG Reconciliation</h2>
+          <p>Decision record across the three specs</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <a class="pill-link" href="index.html">⌂ Portal</a>
+        <button class="theme-toggle-btn" onclick="toggleTheme()"><span id="themeIcon">☀️</span><span id="themeText">Light Theme</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero">
+      <div class="hero-tag">Reconciliation Decision Record • v1.0.0</div>
+      <h1>Reconciling the three specs at <span class="editorial-font">their seams</span></h1>
+      <p class="lede">The canonical resolution for every conflict found between RAG Loading &amp; Tuning, RAG Population, and the Agent Build Process Flow. These decisions are authoritative — the three specs are patched to match them.</p>
+      <div class="meta">Author: <b>Anvizent AI Team</b> &nbsp;•&nbsp; Reconciles all three RAG specs &nbsp;•&nbsp; 13 decisions · 1 new knowledge type</div>
+    </section>
+  </div>
+
+  <nav class="section-nav" id="sectionNav">
+    <a href="#new">New Concepts</a>
+    <a href="#matrix">Decision Matrix</a>
+    <a href="#detail">Decision Detail</a>
+    <a href="#impact">Spec Impact</a>
+    <a href="#files">Files</a>
+  </nav>
+
+  <!-- New concepts -->
+  <section class="block" id="new">
+    <div class="container">
+      <div class="eyebrow">Introduced by this reconciliation</div>
+      <h2>New concepts</h2>
+      <div class="grid-3">
+        <div class="panel">
+          <h3>Type 6 — Resolved contextual semantics</h3>
+          <p style="color:var(--muted);">The DW + datamart catalog the agent operates on. A datamart's working JSON + its DWs + the columns it uses are semantic knowledge. <b>Vector chunks + a relational catalog</b>, every record <code>scope</code>-tagged and composable via <code>composes_of</code>.</p>
+        </div>
+        <div class="panel">
+          <h3>Scope taxonomy</h3>
+          <p style="color:var(--muted);"><code>company → department → purpose → role → user</code>. Elicited by the agent and attached to every Type 6 record and to a scheduled purpose's confirmation.</p>
+        </div>
+        <div class="panel">
+          <h3>Role ownership</h3>
+          <p style="color:var(--muted);"><b>Business</b> = owner of requirements · <b>Analyst</b> = owner of definitions · <b>Engineer</b> = owner of deployments. Drives role-adaptive questions and who confirms what.</p>
+        </div>
+      </div>
+      <div class="callout green"><b>Reuse is compositional.</b> A requirement decomposes into sub-datamarts; each is a reusable building block — composed into the current mart and reusable for other questions. Reuse = decompose → match the catalog → add only net-new DW tables/columns → compose.</div>
+    </div>
+  </section>
+
+  <!-- Matrix -->
+  <section class="block" id="matrix">
+    <div class="container">
+      <div class="eyebrow">At a glance</div>
+      <h2>Decision matrix</h2>
+      <div class="panel" style="padding:18px;">
+        <div class="table-wrap" style="margin:0;border:none;">
+          <table>
+            <thead><tr><th>#</th><th>Aspect</th><th>Canonical decision</th></tr></thead>
+            <tbody>
+              <tr><td class="cid">C1</td><td>Artifacts</td><td>Datamart working JSON + DWs + columns = semantic knowledge → <b>Type 6</b> (not just a Type 2 pattern).</td></tr>
+              <tr><td class="cid">C2</td><td>Knowledge types</td><td>Type 6 is <b>scoped</b> (<code>company…user</code>); the agent <b>asks</b> the scope and tags it.</td></tr>
+              <tr><td class="cid">C3</td><td>Reuse</td><td>Reuse is <b>compositional</b> — decompose into reusable <b>sub-datamarts</b>; catalog links via <code>composes_of</code>.</td></tr>
+              <tr><td class="cid">C4</td><td>Reconciliation</td><td>Flag-Unknown, row-uniqueness, date-range-only extract, no pre-join — built into the flow + enforced at <b>JSON validation</b>.</td></tr>
+              <tr><td class="cid">C5</td><td>Triggers</td><td>Capture is <b>usage-based, not deploy-based</b>: confirmation + validation + usage. Onetime = narrow/low; scheduled = purpose served (confirm scope).</td></tr>
+              <tr><td class="cid">C6</td><td>Pattern</td><td>"State &amp; dispute" → <b>"suggest &amp; confirm"</b>: RAG hit = ask with a suggestion (role-phrased); miss = ask openly.</td></tr>
+              <tr><td class="cid">C7</td><td>Population</td><td>Unknowns (incl. webhooks/FTP): ask the user to <b>supply it or a doc link</b>, then load into RAG (Type 1a).</td></tr>
+              <tr><td class="cid">C8</td><td>Metrics</td><td>Incongruent metric definition → ask <b>why</b>, record the reason in RAG.</td></tr>
+              <tr><td class="cid">C9</td><td>Population phases</td><td>Initial load = generic; ongoing = Q&amp;A + telemetry.</td></tr>
+              <tr><td class="cid">C10</td><td>Tenancy</td><td>Agents are <b>tenant-specific</b>; global agents deferred.</td></tr>
+              <tr><td class="cid">C11</td><td>Canonicals</td><td><b>None on day one</b> — canonical datamarts/patterns are <b>earned via tenant usage</b>, not seeded.</td></tr>
+              <tr><td class="cid">C12</td><td>Roles</td><td>Business = requirements · Analyst = definitions · Engineer = deployments. No additional owners.</td></tr>
+              <tr><td class="cid">C13</td><td>Embeddings</td><td>Retrieval co-mixes only same <code>embed_model_version</code> vectors.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Detail -->
+  <section class="block" id="detail">
+    <div class="container">
+      <div class="eyebrow">The record</div>
+      <h2>Decision detail</h2>
+
+      <div class="dec"><h4><span class="cid">C1</span> Datamart JSON is semantic knowledge</h4><p>The pipeline/datamart working JSON + DWs + columns used is stored as <b>Type 6 resolved contextual semantics</b> — the resolved context of the question, shared across the company — not merely a generalized Type 2 pattern.</p></div>
+      <div class="dec"><h4><span class="cid">C2</span> DW/DM knowledge is scoped; the agent elicits scope</h4><p>Type 6 records carry a <code>scope</code> (<code>company/department/purpose/role/user</code>). The agent asks which scope applies and tags the record. This is the home for the DW + datamart catalog.</p></div>
+      <div class="dec"><h4><span class="cid">C3</span> Reuse is compositional</h4><p>A requirement is broken into sub-datamarts; each is reusable to assemble the current mart or to answer other questions. The catalog stores composable units linked by <code>composes_of</code>; reuse adds only net-new DW tables/columns.</p></div>
+      <div class="dec"><h4><span class="cid">C4</span> Reconciliation lives in build + JSON validation</h4><p>Flag unmatched dimension values as "Unknown" (never drop), row-level uniqueness before any join, date/time-range-only extraction, never pre-join, extract datasets individually — explicit build steps and enforced at JSON validation.</p></div>
+      <div class="dec"><h4><span class="cid">C5</span> Capture is usage-based, not deploy-based</h4><p>"Deployment success means nothing." Confidence is driven by user confirmation + data validation + usage. Onetime → confirm narrowly, low reliance. Scheduled → a purpose is served (rely), but confirm the purpose's scope.</p></div>
+      <div class="dec"><h4><span class="cid">C6</span> "Suggest &amp; confirm" (role-phrased)</h4><p>In RAG → ask a question that includes the RAG-derived suggestion, phrased to the role; not in RAG → ask openly (then C7).</p></div>
+      <div class="dec"><h4><span class="cid">C7</span> User-supplied ingestion for unknowns</h4><p>For anything not in RAG (incl. webhooks, FTP files): ask the user to supply the info or a doc link, then load it into RAG (Type 1a).</p></div>
+      <div class="dec"><h4><span class="cid">C8</span> Metric divergence is explained &amp; recorded</h4><p>When a new metric definition is not congruent with an existing one, ask the user why, then record the reason/explanation in RAG alongside the divergence.</p></div>
+      <div class="dec"><h4><span class="cid">C9</span> Two population phases</h4><p>Initial load = generic (vendor + industry). Ongoing population = Q&amp;A from users + telemetry as the agents work.</p></div>
+      <div class="dec"><h4><span class="cid">C10</span> Agents are tenant-specific</h4><p>All agents are tenant-scoped; the tenant is the boundary. Global agents are deferred to a later spec.</p></div>
+      <div class="dec"><h4><span class="cid">C11</span> No canonicals on day one</h4><p>Canonical (common) datamarts and patterns emerge from tenant usage. Industry seed provides generic semantics only; canonical status is earned, not seeded.</p></div>
+      <div class="dec"><h4><span class="cid">C12</span> Role ownership</h4><p>Business = requirements · Analyst = definitions · Engineer = deployments. No additional owner roles in the current spec.</p></div>
+      <div class="dec"><h4><span class="cid">C13</span> Retrieval respects the embedding model version</h4><p>Retrieval co-mixes only same-<code>embed_model_version</code> vectors; a model change implies a re-embed pass first.</p></div>
+    </div>
+  </section>
+
+  <!-- Impact -->
+  <section class="block" id="impact">
+    <div class="container">
+      <div class="eyebrow">What changed</div>
+      <h2>Spec impact</h2>
+      <div class="grid-3">
+        <div class="panel">
+          <h3>Loading &amp; Tuning</h3>
+          <ul class="clean">
+            <li>Adds <b>Type 6</b> (type + <code>scope</code>/<code>composes_of</code> + relational datamart/DW catalog)</li>
+            <li>Capture trigger → <b>usage-based</b> (C5)</li>
+            <li>Type 2 canonicals <b>emergent, not seeded</b> (C11)</li>
+            <li>Retrieval honors <code>embed_model_version</code> (C13)</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Population Strategy</h3>
+          <ul class="clean">
+            <li>Source B seeds <b>generic semantics only</b> (C11)</li>
+            <li>Usage-based trigger (C5)</li>
+            <li><b>User-supplied ingestion</b> for unknowns (C7)</li>
+            <li>Source C also produces <b>Type 6</b> (C1–C3); tenant-scoped (C10)</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Agent Build Flow</h3>
+          <ul class="clean">
+            <li><b>Reconciliation + validation</b> steps (C4)</li>
+            <li><b>Scope elicitation</b> &amp; <b>sub-datamart</b> decompose/reuse (C2/C3)</li>
+            <li><b>Suggest-&amp;-confirm</b> invariant (C6); ingestion (C7)</li>
+            <li><b>Metric-divergence</b> rationale (C8); usage confirm (C5); roles (C12)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Files -->
+  <section class="block" id="files">
+    <div class="container">
+      <div class="eyebrow">Canonical record &amp; reconciled specs</div>
+      <h2>Files</h2>
+      <div class="files-grid">
+        <a class="file-card" href="anvizent-rag-reconciliation-decisions.md">
+          <span class="file-ico">MD</span>
+          <span><span class="fname">anvizent-rag-reconciliation-decisions.md</span><span class="fdesc">This decision record — the authoritative resolution for all 13 conflicts.</span></span>
+        </a>
+        <a class="file-card" href="rag_loading_tuning_architecture.html">
+          <span class="file-ico">DOC</span>
+          <span><span class="fname">RAG Loading &amp; Tuning</span><span class="fdesc">Now includes Type 6, usage-based capture, emergent canonicals.</span></span>
+        </a>
+        <a class="file-card" href="rag_population_strategy.html">
+          <span class="file-ico">DOC</span>
+          <span><span class="fname">RAG Population Strategy</span><span class="fdesc">Generic-only seed, usage trigger, user-supplied ingestion, Type 6.</span></span>
+        </a>
+        <a class="file-card" href="rag_agent_build_process_flow.html">
+          <span class="file-ico">DOC</span>
+          <span><span class="fname">Agent Build Process Flow</span><span class="fdesc">19 steps with reconciliation, scope, reuse, suggest-&amp;-confirm.</span></span>
+        </a>
+        <a class="file-card" href="anvizent-rag-addon-schema.sql">
+          <span class="file-ico">SQL</span>
+          <span><span class="fname">anvizent-rag-addon-schema.sql</span><span class="fdesc">Type 6 enum + scope/composes_of + datamart/DW catalog tables.</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="container">
+      <p>RAG Reconciliation — Decision Record • v1.0.0 • Standard HTML5 / CSS3 / ES6</p>
+      <p style="font-size:11px;">Author: <b>Anvizent AI Team</b> • Authoritative across all three RAG specs • Zero external dependencies (GitHub Pages-ready)</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-theme');
+      localStorage.setItem('portal-theme', isLight ? 'light' : 'dark');
+      updateThemeUI(isLight);
+    }
+    function applyThemePreference() {
+      const saved = localStorage.getItem('portal-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isLight = saved === 'light' || (!saved && !prefersDark);
+      document.body.classList.toggle('light-theme', isLight);
+      updateThemeUI(isLight);
+    }
+    function updateThemeUI(isLight) {
+      const icon = document.getElementById('themeIcon'); const text = document.getElementById('themeText');
+      if (icon && text) { icon.innerText = isLight ? '🌙' : '☀️'; text.innerText = isLight ? 'Dark Theme' : 'Light Theme'; }
+    }
+    applyThemePreference();
+
+    const navLinks = Array.from(document.querySelectorAll('#sectionNav a'));
+    const sections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { const id = '#' + e.target.id; navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id)); } });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sections.forEach(s => s && obs.observe(s));
+  </script>
+</body>
+</html>

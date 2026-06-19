@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Build Process Flow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #f47920; --primary-light: #ffb066; --primary-glow: rgba(244,121,32,0.15);
+      --terracotta: #c2410c; --indigo: #6366f1; --indigo-glow: rgba(99,102,241,0.15);
+      --green: #10b981; --green-glow: rgba(16,185,129,0.15); --amber: #f59e0b; --red: #ef4444;
+      --bg: #0b0f19; --bg-grid: rgba(255,255,255,0.02); --card: #111827; --card-2: #0e1524;
+      --card-border: rgba(255,255,255,0.08); --text: #d1d5db; --navy: #f9fafb; --muted: #9ca3af;
+      --border: #1f2937; --badge-bg: #1e293b; --code-bg: #0a0e17;
+      --shadow: 0 4px 20px -2px rgba(0,0,0,0.5), 0 2px 8px -1px rgba(0,0,0,0.3);
+      --shadow-hover: 0 25px 40px -10px rgba(244,121,32,0.15), 0 10px 20px -5px rgba(0,0,0,0.4);
+      --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
+    body.light-theme {
+      --bg: #f8fafc; --bg-grid: rgba(15,23,42,0.015); --card: #ffffff; --card-2: #f8fafc;
+      --card-border: rgba(15,23,42,0.06); --text: #475569; --navy: #0f172a; --muted: #64748b;
+      --border: #e2e8f0; --badge-bg: #f1f5f9; --code-bg: #0f172a;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+      --shadow-hover: 0 20px 25px -5px rgba(99,102,241,0.1), 0 10px 10px -5px rgba(99,102,241,0.04);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+    body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: var(--bg);
+      background-image: linear-gradient(to right, var(--bg-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--bg-grid) 1px, transparent 1px);
+      background-size: 40px 40px; color: var(--text); line-height: 1.65; transition: var(--transition); overflow-x: hidden; }
+    h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; color: var(--navy); letter-spacing: -0.02em; margin-top: 0; }
+    .editorial-font { font-family: 'Fraunces', Georgia, serif; font-style: italic; }
+    code, pre { font-family: 'JetBrains Mono', monospace; }
+    a { text-decoration: none; transition: var(--transition); color: var(--primary); }
+    a:hover { color: var(--primary-light); }
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+
+    header.topbar { position: sticky; top: 0; z-index: 100; background: color-mix(in srgb, var(--bg) 85%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+    .topbar-inner { max-width: 1140px; margin: 0 auto; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+    .logo-container { display: flex; align-items: center; gap: 12px; }
+    .logo-badge { background: var(--primary); color: #fff; font-weight: 700; font-family: 'Space Grotesk', sans-serif; padding: 6px 12px; border-radius: 6px; font-size: 14px; letter-spacing: 0.05em; }
+    .logo-text h2 { font-size: 17px; margin: 0; line-height: 1; }
+    .logo-text p { margin: 3px 0 0; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .pill-link, .theme-toggle-btn { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--card-border); color: var(--navy); padding: 8px 16px; border-radius: 30px; cursor: pointer; font-size: 13px; font-weight: 600; box-shadow: var(--shadow); transition: var(--transition); font-family: 'Inter', sans-serif; }
+    .pill-link:hover, .theme-toggle-btn:hover { border-color: var(--primary); transform: translateY(-2px); color: var(--navy); }
+
+    .hero { text-align: center; padding: 70px 0 30px; }
+    .hero-tag { display: inline-block; background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(244,121,32,0.3); font-size: 12px; font-weight: 600; padding: 6px 16px; border-radius: 20px; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 24px; }
+    body.light-theme .hero-tag { background: var(--badge-bg); border-color: var(--border); }
+    .hero h1 { font-size: 46px; line-height: 1.1; margin: 0 auto 18px; max-width: 880px; }
+    .hero p.lede { font-size: 18px; color: var(--muted); max-width: 760px; margin: 0 auto; }
+    .hero .meta { font-size: 13px; color: var(--muted); margin-top: 18px; }
+    .hero .meta b { color: var(--navy); }
+
+    .section-nav { position: sticky; top: 64px; z-index: 90; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 14px 0; margin: 24px 0 10px; background: color-mix(in srgb, var(--bg) 80%, transparent); backdrop-filter: blur(8px); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .section-nav a { font-size: 12.5px; font-weight: 600; color: var(--muted); padding: 6px 13px; border-radius: 20px; border: 1px solid transparent; }
+    .section-nav a:hover { color: var(--navy); background: var(--badge-bg); }
+    .section-nav a.active { color: var(--primary); border-color: rgba(244,121,32,0.35); background: var(--primary-glow); }
+
+    section.block { padding: 54px 0 10px; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--primary); margin-bottom: 10px; }
+    section.block > .container > h2 { font-size: 32px; margin-bottom: 14px; }
+    .section-lede { font-size: 16px; color: var(--muted); max-width: 780px; margin: 0 0 32px; }
+
+    .panel { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px; box-shadow: var(--shadow); margin-bottom: 24px; }
+    .panel h3 { font-size: 20px; margin-bottom: 12px; }
+    .panel h4 { font-size: 15px; margin: 18px 0 8px; color: var(--navy); }
+    .panel p { margin: 0 0 14px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .callout { border-left: 3px solid var(--primary); background: var(--primary-glow); padding: 16px 20px; border-radius: 0 10px 10px 0; margin: 0 0 20px; font-size: 14.5px; }
+    .callout.indigo { border-left-color: var(--indigo); background: var(--indigo-glow); }
+    .callout.green { border-left-color: var(--green); background: var(--green-glow); }
+    .callout b { color: var(--navy); }
+
+    .chip { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 5px; letter-spacing: 0.04em; text-transform: uppercase; white-space: nowrap; }
+    .chip.rag { background: var(--green-glow); color: #34d399; }
+    .chip.ask { background: rgba(244,121,32,0.15); color: var(--primary-light); }
+    body.light-theme .chip.rag { background: #d1fae5; color: #059669; }
+    body.light-theme .chip.ask { background: #ffebd5; color: #ea580c; }
+
+    ul.clean { list-style: none; padding: 0; margin: 0; }
+    ul.clean li { padding: 7px 0 7px 26px; position: relative; font-size: 14.5px; border-bottom: 1px dashed var(--border); }
+    ul.clean li:last-child { border-bottom: none; }
+    ul.clean li::before { content: '▸'; position: absolute; left: 4px; color: var(--primary); }
+
+    /* toggle buttons */
+    .toggle-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .tbtn { background: var(--badge-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; cursor: pointer; color: var(--text); font-weight: 600; font-size: 13px; transition: var(--transition); }
+    .tbtn:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .tbtn.active { background: var(--primary-glow); border-color: var(--primary); color: var(--navy); }
+    .demo-out { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; font-size: 14px; color: #cbd5e1; min-height: 70px; }
+    .demo-out .who { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 8px; font-weight: 700; }
+    .demo-out .q { color: var(--navy); font-size: 15px; }
+
+    /* step flow */
+    .flow { position: relative; margin-top: 10px; padding-left: 8px; }
+    .step { position: relative; padding: 0 0 26px 64px; }
+    .step::before { content: ''; position: absolute; left: 23px; top: 6px; bottom: -6px; width: 2px; background: var(--border); }
+    .step:last-child::before { display: none; }
+    .step .num { position: absolute; left: 0; top: 0; width: 46px; height: 46px; border-radius: 12px; background: var(--card); border: 1px solid var(--card-border); display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--primary); font-size: 15px; box-shadow: var(--shadow); z-index: 2; }
+    .step h4 { font-size: 17px; margin: 8px 0 6px; }
+    .step p { margin: 0 0 8px; font-size: 14.5px; }
+    .step .sub { font-size: 14px; color: var(--text); }
+    .step .pat { margin-top: 8px; font-size: 12.5px; color: var(--muted); }
+    .phase-label { margin: 26px 0 14px 64px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+    .phase-label:first-child { margin-top: 0; }
+
+    pre.code { background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px; overflow-x: auto; font-size: 12.5px; line-height: 1.6; color: #e2e8f0; margin: 0 0 8px; }
+    pre.code .c { color: #6b7a90; } pre.code .k { color: #7dd3fc; } pre.code .s { color: #ffb066; }
+
+    .file-card { display: flex; gap: 14px; align-items: flex-start; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: var(--transition); max-width: 520px; }
+    .file-card:hover { border-color: var(--primary); transform: translateY(-3px); }
+    .file-ico { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; padding: 6px 8px; border-radius: 6px; background: var(--primary-glow); color: var(--primary); flex-shrink: 0; }
+    .file-card .fname { font-weight: 600; color: var(--navy); font-size: 14px; font-family: 'JetBrains Mono', monospace; word-break: break-all; }
+    .file-card .fdesc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    footer.foot { border-top: 1px solid var(--border); margin-top: 60px; padding: 40px 0; text-align: center; color: var(--muted); font-size: 13px; }
+    footer.foot b { color: var(--navy); }
+
+    @media (max-width: 700px) { .hero h1 { font-size: 31px; } .logo-text { display: none; } section.block > .container > h2 { font-size: 24px; } .step { padding-left: 56px; } .phase-label { margin-left: 56px; } }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo-container">
+        <div class="logo-badge">RAG</div>
+        <div class="logo-text">
+          <h2>Agent Build Process Flow</h2>
+          <p>Datamart / Pipeline JSON generation</p>
+        </div>
+      </div>
+      <div class="nav-actions">
+        <a class="pill-link" href="rag_population_strategy.html">↩ Population</a>
+        <a class="pill-link" href="index.html">⌂ Portal</a>
+        <button class="theme-toggle-btn" onclick="toggleTheme()"><span id="themeIcon">☀️</span><span id="themeText">Light Theme</span></button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero">
+      <div class="hero-tag">Agent Build Process Flow • v1.0.0</div>
+      <h1>From a business question to <span class="editorial-font">datamart JSON</span></h1>
+      <p class="lede">The ordered method the Data Engineering Bot follows to generate datamart / pipeline JSON — grounded in the RAG at every step, and adapted to the user's role. This captures the build method; it does not redefine it.</p>
+      <div class="meta">Author: <b>Anvizent AI Team</b> &nbsp;•&nbsp; The agent is <b>Source C</b> of the RAG Population Strategy &nbsp;•&nbsp; The method is authoritative &amp; fixed</div>
+    </section>
+  </div>
+
+  <nav class="section-nav" id="sectionNav">
+    <a href="#invariants">Invariants</a>
+    <a href="#flow">Process Flow</a>
+    <a href="#output">Datamart JSON</a>
+    <a href="#reuse">Reuse Evaluation</a>
+    <a href="#rag">Ties to RAG</a>
+    <a href="#source">Source File</a>
+  </nav>
+
+  <!-- Invariants -->
+  <section class="block" id="invariants">
+    <div class="container">
+      <div class="eyebrow">Applied at every step</div>
+      <h2>Cross-cutting invariants</h2>
+      <p class="section-lede">These are not phases — they wrap every identification step in the flow below.</p>
+
+      <div class="grid-2">
+        <div class="panel">
+          <h3>1 · "Suggest &amp; confirm" RAG pattern</h3>
+          <p>For every element the agent needs to identify:</p>
+          <ul class="clean">
+            <li><span class="chip rag">In RAG</span> &nbsp;→ <b>ask with the RAG-derived suggestion</b> ("I plan to use … — confirm or correct?"), phrased to the role.</li>
+            <li><span class="chip ask">Not in RAG</span> &nbsp;→ <b>ask openly.</b> If the user doesn't have it either, ask them to supply it or a doc link, then load it into RAG.</li>
+          </ul>
+          <div class="toggle-row" style="margin-top:18px;">
+            <button class="tbtn active" data-rag="hit" onclick="setRag('hit',event)">In RAG</button>
+            <button class="tbtn" data-rag="miss" onclick="setRag('miss',event)">Not in RAG</button>
+          </div>
+          <div class="demo-out" id="ragOut"></div>
+        </div>
+
+        <div class="panel">
+          <h3>2 · Role-adaptive questioning &amp; ownership</h3>
+          <p>The same decision is phrased — and the confirmation routed — to the role's ownership:</p>
+          <div class="toggle-row">
+            <button class="tbtn active" data-role="biz" onclick="setRole('biz',event)">Business · requirements</button>
+            <button class="tbtn" data-role="analyst" onclick="setRole('analyst',event)">Analyst · definitions</button>
+            <button class="tbtn" data-role="eng" onclick="setRole('eng',event)">Engineer · deployments</button>
+          </div>
+          <div class="demo-out" id="roleOut"></div>
+          <p class="pat" style="font-size:12.5px;color:var(--muted);margin-top:14px;">Business = owner of requirements · Analyst = owner of definitions · Engineer = owner of deployments.</p>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:24px;">
+        <h3>Reconciliation &amp; extraction hygiene <span class="chip ask" style="vertical-align:middle;">enforced at JSON validation</span></h3>
+        <p>Applied throughout the build and checked at validation:</p>
+        <ul class="clean">
+          <li><b>Extract by date/time range only</b> — never by business attributes.</li>
+          <li><b>Extract each dataset individually; never pre-join during extraction.</b></li>
+          <li><b>Row-level uniqueness on join keys before any join</b> — dedup, null defaults, cleanse.</li>
+          <li><b>Cross-reference every dimension; flag unmatched as "Unknown"</b> — never drop records.</li>
+        </ul>
+      </div>
+
+      <div class="callout indigo" style="margin-top:20px;"><b>Tenant scope.</b> The agent is tenant-specific — all retrieval and production stay within the tenant. Global agents are deferred.</div>
+    </div>
+  </section>
+
+  <!-- Process flow -->
+  <section class="block" id="flow">
+    <div class="container">
+      <div class="eyebrow">The ordered method</div>
+      <h2>Process flow — 19 steps</h2>
+      <p class="section-lede">Each step carries the invariants above: suggest &amp; confirm against RAG (ask openly + ingest if missing), phrase to the role's ownership, and hold the reconciliation/extraction hygiene.</p>
+
+      <div class="panel">
+        <div class="flow">
+          <div class="phase-label">Scope</div>
+
+          <div class="step"><div class="num">1</div>
+            <h4>Intake &amp; source applications</h4>
+            <p>Get the business question. Identify the source applications.</p>
+            <div class="pat">Ask if not in RAG; if present, state the systems you'll use to fetch and invite dispute.</div>
+          </div>
+
+          <div class="step"><div class="num">2</div>
+            <h4>Scope all sources (clarify the metrics in the question)</h4>
+            <p>Across all source applications, identify:</p>
+            <ul class="clean"><li>tables / APIs from each application</li><li>webhooks</li><li>files present in any FTP locations, etc.</li></ul>
+          </div>
+
+          <div class="step"><div class="num">3</div>
+            <h4>Elements per source</h4>
+            <p>For each identified source, identify the elements (fields) needed.</p>
+            <div class="pat">Same pattern — ask if not in RAG, confirm if it is.</div>
+          </div>
+
+          <div class="phase-label">Warehouse layer</div>
+
+          <div class="step"><div class="num">4</div>
+            <h4>DW table classification &amp; dimension resolution</h4>
+            <p class="sub">These are the DW tables. Identify which are <b>transaction tables</b> and which are <b>dimension tables</b>. Bring all related <b>dimension resolution</b> for every transaction table. Identify what data to <b>filter based on how far back</b> in history you need.</p>
+            <div class="pat">Same RAG approach (ask / confirm).</div>
+          </div>
+
+          <div class="step"><div class="num">5</div>
+            <h4>Load strategy</h4>
+            <p>Identify whether you need a <b>full load</b> or an <b>incremental load</b>.</p>
+          </div>
+
+          <div class="step"><div class="num">6</div>
+            <h4>DW table JSON</h4>
+            <p>Create JSON for DW tables that are <b>not already there</b>. If they already exist, <b>add only the columns</b> that are needed.</p>
+          </div>
+
+          <div class="phase-label">Datamart construction</div>
+
+          <div class="step"><div class="num">7</div>
+            <h4>Decompose &amp; reuse check <span class="chip rag" style="vertical-align:middle;">sub-datamarts</span></h4>
+            <p>Break the requirement into <b>sub-datamarts</b>. Check the datamart catalog for existing datamarts/sub-datamarts that already answer a sub-component; <b>reuse and compose</b> them, adding only net-new DW tables/columns rather than rebuilding.</p>
+          </div>
+
+          <div class="step"><div class="num">8</div>
+            <h4>Driving table</h4>
+            <p>Identify the driving table — the primary fact / transaction table that anchors the analysis.</p>
+          </div>
+
+          <div class="step"><div class="num">9</div>
+            <h4>Filter / group-by order</h4>
+            <p>Identify <b>filter → group by</b> or <b>group by → filter</b>.</p>
+          </div>
+
+          <div class="step"><div class="num">10</div>
+            <h4>Filter &amp; group-by specifics</h4>
+            <ul class="clean"><li>columns / fields in the filter and in the group by</li><li>values and conditions in the filters</li><li>columns in the group by</li></ul>
+          </div>
+
+          <div class="step"><div class="num">11</div>
+            <h4>Transaction-table joins</h4>
+            <p>Identify if you need to join with other transaction tables.</p>
+          </div>
+
+          <div class="step"><div class="num">12</div>
+            <h4>Lookup tables</h4>
+            <p>For each lookup table, identify whether you need to: filter &amp; group by · group by &amp; filter · just group by · just filter — and the corresponding values.</p>
+          </div>
+
+          <div class="step"><div class="num">13</div>
+            <h4>Join conditions <span class="chip ask" style="vertical-align:middle;">role-adaptive</span></h4>
+            <p>Identify the join conditions from RAG (suggest &amp; confirm). Ask per role — business user keeps the business implication; analyst &amp; engineer get table- and column-level.</p>
+          </div>
+
+          <div class="step"><div class="num">14</div>
+            <h4>Field selection &amp; renaming</h4>
+            <p>Keep the fields you need and drop the ones you do not. Rename fields to make business sense based on context.</p>
+          </div>
+
+          <div class="step"><div class="num">15</div>
+            <h4>Calculated values / metrics</h4>
+            <p>Identify the metrics needed. First build the metrics <b>common across more compound metrics</b> to keep the formulae consistent, then the rest.</p>
+            <div class="pat">Build all metrics by asking + RAG. On a definition <b>incongruent with an existing one, ask why and record the reason in RAG</b> — never diverge silently.</div>
+          </div>
+
+          <div class="step"><div class="num">16</div>
+            <h4>Final shaping</h4>
+            <p>Filter &amp; group by, or group by &amp; filter, with the relevant elements if needed.</p>
+          </div>
+
+          <div class="phase-label">Finalize</div>
+
+          <div class="step"><div class="num">17</div>
+            <h4>Scope, usage &amp; ownership confirmation</h4>
+            <p>Elicit the result's <b>scope</b> (company / department / purpose / role / user). Confirm the <b>usage</b> — onetime (low reliance, narrow) or <b>scheduled</b> (a purpose served; rely, but confirm its scope). Route confirmations to owners: requirements → business, definitions → analyst, deployment → engineer.</p>
+          </div>
+
+          <div class="step"><div class="num">18</div>
+            <h4>JSON validation</h4>
+            <p>Validate the JSON, enforcing the reconciliation &amp; extraction-hygiene rules (Unknown-flagging, row-level uniqueness before joins, date-range extraction, no pre-join).</p>
+          </div>
+
+          <div class="step"><div class="num">19</div>
+            <h4>Emit &amp; record</h4>
+            <p>Emit the <b>datamart JSON</b>. On confirmation + validation + usage, record it as <b>Type 6 resolved contextual semantics</b> (vector + datamart catalog), scope-tagged and linked to its sub-datamarts; the generalized pattern feeds <b>Type 2</b> and earns canonical status only through repeated usage.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Output -->
+  <section class="block" id="output">
+    <div class="container">
+      <div class="eyebrow">Step 19 output</div>
+      <h2>Shape of the datamart JSON</h2>
+      <p class="section-lede">Illustrative only — the structure mirrors the build steps (scope, driving table, joins, lookups, filter/group-by order, field selection, renames, metrics) and is recorded as Type 6.</p>
+      <div class="panel">
+        <pre class="code"><span class="c">// illustrative datamart spec — shape follows steps 7–19</span>
+{
+  <span class="k">"scope"</span>: <span class="s">"department"</span>,                  <span class="c">// step 17 (company..user)</span>
+  <span class="k">"usage"</span>: <span class="s">"scheduled"</span>,                  <span class="c">// step 17 (onetime|scheduled)</span>
+  <span class="k">"composes_of"</span>: [<span class="s">"sub_dm_headcount"</span>],   <span class="c">// step 7 reusable sub-datamarts</span>
+  <span class="k">"load"</span>: <span class="s">"incremental"</span>,                 <span class="c">// step 5</span>
+  <span class="k">"driving_table"</span>: <span class="s">"fct_absences"</span>,        <span class="c">// step 8</span>
+  <span class="k">"order"</span>: <span class="s">"filter_then_groupby"</span>,         <span class="c">// step 9</span>
+  <span class="k">"filters"</span>: [                            <span class="c">// step 10 (date range = step 4)</span>
+    { <span class="k">"field"</span>: <span class="s">"absence_date"</span>, <span class="k">"op"</span>: <span class="s">"&gt;="</span>, <span class="k">"value"</span>: <span class="s">"2025-01-01"</span> }
+  ],
+  <span class="k">"group_by"</span>: [<span class="s">"department_id"</span>, <span class="s">"region"</span>],
+  <span class="k">"transaction_joins"</span>: [],                 <span class="c">// step 11</span>
+  <span class="k">"lookups"</span>: [                            <span class="c">// step 12</span>
+    { <span class="k">"table"</span>: <span class="s">"dim_employee"</span>, <span class="k">"mode"</span>: <span class="s">"group_by_only"</span> },
+    { <span class="k">"table"</span>: <span class="s">"dim_department"</span>, <span class="k">"mode"</span>: <span class="s">"filter_then_group_by"</span> }
+  ],
+  <span class="k">"joins"</span>: [                              <span class="c">// step 13 (from RAG)</span>
+    { <span class="k">"left"</span>: <span class="s">"fct_absences.employee_id"</span>,
+      <span class="k">"right"</span>: <span class="s">"dim_employee.employee_id"</span>,
+      <span class="k">"type"</span>: <span class="s">"left"</span>, <span class="k">"unmatched"</span>: <span class="s">"Unknown"</span> }  <span class="c">// step 18 hygiene</span>
+  ],
+  <span class="k">"fields"</span>: [                             <span class="c">// step 14 keep + rename</span>
+    { <span class="k">"src"</span>: <span class="s">"dim_department.dept_name"</span>, <span class="k">"as"</span>: <span class="s">"Department"</span> }
+  ],
+  <span class="k">"metrics"</span>: [                            <span class="c">// step 15 base first, then compound</span>
+    { <span class="k">"name"</span>: <span class="s">"Absence Hours"</span>, <span class="k">"expr"</span>: <span class="s">"SUM(absence_hours)"</span> },
+    { <span class="k">"name"</span>: <span class="s">"Absence Rate"</span>, <span class="k">"expr"</span>: <span class="s">"Absence Hours / Scheduled Hours"</span> }
+  ]
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reuse -->
+  <section class="block" id="reuse">
+    <div class="container">
+      <div class="eyebrow">After the build</div>
+      <h2>Datamart reuse evaluation (compositional)</h2>
+      <div class="panel">
+        <p>Reuse is <b>compositional</b>: decompose the requirement into sub-components, where <b>each sub-component can be a datamart</b>. Each sub-datamart can be composed into the current final datamart <i>and</i> reused in other datamarts for other questions.</p>
+        <div class="callout green"><b>Reuse over rebuild.</b> Decompose → match sub-components against the datamart catalog → reuse what exists, <b>adding only new DW tables/columns</b> → compose the final mart. Canonical (common) datamarts are <b>earned through tenant usage, not seeded</b>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Ties to RAG -->
+  <section class="block" id="rag">
+    <div class="container">
+      <div class="eyebrow">Where this sits</div>
+      <h2>Ties to the RAG</h2>
+      <div class="grid-2">
+        <div class="panel">
+          <h3>Consumes the RAG</h3>
+          <p>Every "is it in RAG?" check reads the knowledge store: structural docs (Type 1a), live schema (Type 1b cache), prior patterns (Type 2), semantics &amp; metrics (Type 3), the tenant's customizations (Type 4), and resolved datamarts (Type 6) — so the agent can <i>suggest</i> what it will use and let the user confirm. Retrieval respects the active <code>embed_model_version</code>.</p>
+        </div>
+        <div class="panel">
+          <h3>Produces for the RAG</h3>
+          <p>On <b>confirmation + validation + usage</b> (not deploy): the datamart JSON is recorded as <b>Type 6</b> resolved semantics (+ the generalized <b>Type 2</b> pattern, canonical only via repeated use); metric definitions queue as <b>Type 3</b> suggestions (divergences recorded with a reason); user overrides become <b>Type 4</b>; run telemetry distills to <b>Type 5</b>. See the <a href="rag_population_strategy.html">RAG Population Strategy</a> (Source C).</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Source -->
+  <section class="block" id="source">
+    <div class="container">
+      <div class="eyebrow">Canonical source</div>
+      <h2>Source file</h2>
+      <a class="file-card" href="anvizent-agent-build-process-flow.md">
+        <span class="file-ico">MD</span>
+        <span><span class="fname">anvizent-agent-build-process-flow.md</span><span class="fdesc">The authoritative step list this page renders — the agent's datamart / pipeline JSON build method.</span></span>
+      </a>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="container">
+      <p>Agent Build Process Flow • v1.0.0 • Standard HTML5 / CSS3 / ES6</p>
+      <p style="font-size:11px;">Author: <b>Anvizent AI Team</b> • The build method is authoritative &amp; fixed • Zero external dependencies (GitHub Pages-ready)</p>
+    </div>
+  </footer>
+
+  <script>
+    function toggleTheme() {
+      const isLight = document.body.classList.toggle('light-theme');
+      localStorage.setItem('portal-theme', isLight ? 'light' : 'dark');
+      updateThemeUI(isLight);
+    }
+    function applyThemePreference() {
+      const saved = localStorage.getItem('portal-theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const isLight = saved === 'light' || (!saved && !prefersDark);
+      document.body.classList.toggle('light-theme', isLight);
+      updateThemeUI(isLight);
+    }
+    function updateThemeUI(isLight) {
+      const icon = document.getElementById('themeIcon'); const text = document.getElementById('themeText');
+      if (icon && text) { icon.innerText = isLight ? '🌙' : '☀️'; text.innerText = isLight ? 'Dark Theme' : 'Light Theme'; }
+    }
+    applyThemePreference();
+
+    const ragMsg = {
+      hit: { who: 'In RAG → ask with a suggestion', q: '"I plan to use <b>Salesforce</b> (Opportunity, Account) and <b>Epicor</b> (HR_ABSENCE) to fetch this — confirm, or correct me?"' },
+      miss:{ who: 'Not in RAG → ask openly (then ingest)', q: '"I don\'t have this yet — which source holds it? You can point me to the system or a doc link and I\'ll load it into RAG."' }
+    };
+    function setRag(k, evt) {
+      document.querySelectorAll('[data-rag]').forEach(b => b.classList.toggle('active', b.dataset.rag === k));
+      const m = ragMsg[k];
+      document.getElementById('ragOut').innerHTML = '<div class="who">' + m.who + '</div><div class="q">' + m.q + '</div>';
+    }
+    setRag('hit');
+
+    const roleMsg = {
+      biz: { who: 'Business user → owner of requirements', q: '"Should we count an order only when it has a matching customer, or include orders even if the customer is missing (flagged as <b>Unknown</b>)?"' },
+      analyst: { who: 'Analyst → owner of definitions', q: '"Join <b>orders → customers</b> on <b>customer_id</b> (left join); unmatched customer_id flagged \'Unknown\'. Confirm the definition?"' },
+      eng: { who: 'Engineer → owner of deployments', q: '"<b>LEFT JOIN</b> fct_orders f ON f.customer_id = dim_customer.customer_id; null key → \'Unknown\' bucket. Confirm key, join type &amp; load?"' }
+    };
+    function setRole(k, evt) {
+      document.querySelectorAll('[data-role]').forEach(b => b.classList.toggle('active', b.dataset.role === k));
+      const m = roleMsg[k];
+      document.getElementById('roleOut').innerHTML = '<div class="who">' + m.who + '</div><div class="q">' + m.q + '</div>';
+    }
+    setRole('biz');
+
+    const navLinks = Array.from(document.querySelectorAll('#sectionNav a'));
+    const sections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { const id = '#' + e.target.id; navLinks.forEach(a => a.classList.toggle('active', a.getAttribute('href') === id)); } });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    sections.forEach(s => s && obs.observe(s));
+  </script>
+</body>
+</html>
