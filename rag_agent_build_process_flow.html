@@ -166,16 +166,16 @@
   <section class="block" id="invariants">
     <div class="container">
       <div class="eyebrow">Applied at every step</div>
-      <h2>Two cross-cutting invariants</h2>
+      <h2>Cross-cutting invariants</h2>
       <p class="section-lede">These are not phases — they wrap every identification step in the flow below.</p>
 
       <div class="grid-2">
         <div class="panel">
-          <h3>1 · The "state &amp; dispute" RAG pattern</h3>
+          <h3>1 · "Suggest &amp; confirm" RAG pattern</h3>
           <p>For every element the agent needs to identify:</p>
           <ul class="clean">
-            <li><span class="chip ask">Not in RAG</span> &nbsp;→ <b>ask the user.</b></li>
-            <li><span class="chip rag">In RAG</span> &nbsp;→ <b>state what you'll use</b> and give the user a chance to dispute before proceeding.</li>
+            <li><span class="chip rag">In RAG</span> &nbsp;→ <b>ask with the RAG-derived suggestion</b> ("I plan to use … — confirm or correct?"), phrased to the role.</li>
+            <li><span class="chip ask">Not in RAG</span> &nbsp;→ <b>ask openly.</b> If the user doesn't have it either, ask them to supply it or a doc link, then load it into RAG.</li>
           </ul>
           <div class="toggle-row" style="margin-top:18px;">
             <button class="tbtn active" data-rag="hit" onclick="setRag('hit',event)">In RAG</button>
@@ -185,17 +185,30 @@
         </div>
 
         <div class="panel">
-          <h3>2 · Role-adaptive questioning</h3>
-          <p>The same decision is phrased to the user's role — here, a join condition:</p>
+          <h3>2 · Role-adaptive questioning &amp; ownership</h3>
+          <p>The same decision is phrased — and the confirmation routed — to the role's ownership:</p>
           <div class="toggle-row">
-            <button class="tbtn active" data-role="biz" onclick="setRole('biz',event)">Business user</button>
-            <button class="tbtn" data-role="analyst" onclick="setRole('analyst',event)">Analyst</button>
-            <button class="tbtn" data-role="eng" onclick="setRole('eng',event)">Engineer</button>
+            <button class="tbtn active" data-role="biz" onclick="setRole('biz',event)">Business · requirements</button>
+            <button class="tbtn" data-role="analyst" onclick="setRole('analyst',event)">Analyst · definitions</button>
+            <button class="tbtn" data-role="eng" onclick="setRole('eng',event)">Engineer · deployments</button>
           </div>
           <div class="demo-out" id="roleOut"></div>
-          <p class="pat" style="font-size:12.5px;color:var(--muted);margin-top:14px;">Business user → business implication. Analyst / Engineer → table- and column-level.</p>
+          <p class="pat" style="font-size:12.5px;color:var(--muted);margin-top:14px;">Business = owner of requirements · Analyst = owner of definitions · Engineer = owner of deployments.</p>
         </div>
       </div>
+
+      <div class="panel" style="margin-top:24px;">
+        <h3>Reconciliation &amp; extraction hygiene <span class="chip ask" style="vertical-align:middle;">enforced at JSON validation</span></h3>
+        <p>Applied throughout the build and checked at validation:</p>
+        <ul class="clean">
+          <li><b>Extract by date/time range only</b> — never by business attributes.</li>
+          <li><b>Extract each dataset individually; never pre-join during extraction.</b></li>
+          <li><b>Row-level uniqueness on join keys before any join</b> — dedup, null defaults, cleanse.</li>
+          <li><b>Cross-reference every dimension; flag unmatched as "Unknown"</b> — never drop records.</li>
+        </ul>
+      </div>
+
+      <div class="callout indigo" style="margin-top:20px;"><b>Tenant scope.</b> The agent is tenant-specific — all retrieval and production stay within the tenant. Global agents are deferred.</div>
     </div>
   </section>
 
@@ -203,8 +216,8 @@
   <section class="block" id="flow">
     <div class="container">
       <div class="eyebrow">The ordered method</div>
-      <h2>Process flow — 16 steps</h2>
-      <p class="section-lede">Each step carries the two invariants above: ask if not in RAG, state-and-let-dispute if it is; phrase to the role.</p>
+      <h2>Process flow — 19 steps</h2>
+      <p class="section-lede">Each step carries the invariants above: suggest &amp; confirm against RAG (ask openly + ingest if missing), phrase to the role's ownership, and hold the reconciliation/extraction hygiene.</p>
 
       <div class="panel">
         <div class="flow">
@@ -249,54 +262,71 @@
           <div class="phase-label">Datamart construction</div>
 
           <div class="step"><div class="num">7</div>
+            <h4>Decompose &amp; reuse check <span class="chip rag" style="vertical-align:middle;">sub-datamarts</span></h4>
+            <p>Break the requirement into <b>sub-datamarts</b>. Check the datamart catalog for existing datamarts/sub-datamarts that already answer a sub-component; <b>reuse and compose</b> them, adding only net-new DW tables/columns rather than rebuilding.</p>
+          </div>
+
+          <div class="step"><div class="num">8</div>
             <h4>Driving table</h4>
             <p>Identify the driving table — the primary fact / transaction table that anchors the analysis.</p>
           </div>
 
-          <div class="step"><div class="num">8</div>
+          <div class="step"><div class="num">9</div>
             <h4>Filter / group-by order</h4>
             <p>Identify <b>filter → group by</b> or <b>group by → filter</b>.</p>
           </div>
 
-          <div class="step"><div class="num">9</div>
+          <div class="step"><div class="num">10</div>
             <h4>Filter &amp; group-by specifics</h4>
             <ul class="clean"><li>columns / fields in the filter and in the group by</li><li>values and conditions in the filters</li><li>columns in the group by</li></ul>
           </div>
 
-          <div class="step"><div class="num">10</div>
+          <div class="step"><div class="num">11</div>
             <h4>Transaction-table joins</h4>
             <p>Identify if you need to join with other transaction tables.</p>
           </div>
 
-          <div class="step"><div class="num">11</div>
+          <div class="step"><div class="num">12</div>
             <h4>Lookup tables</h4>
             <p>For each lookup table, identify whether you need to: filter &amp; group by · group by &amp; filter · just group by · just filter — and the corresponding values.</p>
           </div>
 
-          <div class="step"><div class="num">12</div>
+          <div class="step"><div class="num">13</div>
             <h4>Join conditions <span class="chip ask" style="vertical-align:middle;">role-adaptive</span></h4>
-            <p>Identify the join conditions based on RAG; confirm if not present. Ask join questions appropriately for the role — business user keeps the business implication; analyst &amp; engineer get table- and column-level.</p>
+            <p>Identify the join conditions from RAG (suggest &amp; confirm). Ask per role — business user keeps the business implication; analyst &amp; engineer get table- and column-level.</p>
           </div>
 
-          <div class="step"><div class="num">13</div>
+          <div class="step"><div class="num">14</div>
             <h4>Field selection &amp; renaming</h4>
             <p>Keep the fields you need and drop the ones you do not. Rename fields to make business sense based on context.</p>
           </div>
 
-          <div class="step"><div class="num">14</div>
+          <div class="step"><div class="num">15</div>
             <h4>Calculated values / metrics</h4>
-            <p>Identify the calculated values / metrics needed. First build the metrics <b>common across more compound metrics</b> to keep the formulae consistent, then build the rest.</p>
-            <div class="pat">Build all metrics by asking questions and using RAG.</div>
+            <p>Identify the metrics needed. First build the metrics <b>common across more compound metrics</b> to keep the formulae consistent, then the rest.</p>
+            <div class="pat">Build all metrics by asking + RAG. On a definition <b>incongruent with an existing one, ask why and record the reason in RAG</b> — never diverge silently.</div>
           </div>
 
-          <div class="step"><div class="num">15</div>
+          <div class="step"><div class="num">16</div>
             <h4>Final shaping</h4>
             <p>Filter &amp; group by, or group by &amp; filter, with the relevant elements if needed.</p>
           </div>
 
-          <div class="step"><div class="num">16</div>
-            <h4>Emit the datamart JSON</h4>
-            <p>Create the datamart JSON.</p>
+          <div class="phase-label">Finalize</div>
+
+          <div class="step"><div class="num">17</div>
+            <h4>Scope, usage &amp; ownership confirmation</h4>
+            <p>Elicit the result's <b>scope</b> (company / department / purpose / role / user). Confirm the <b>usage</b> — onetime (low reliance, narrow) or <b>scheduled</b> (a purpose served; rely, but confirm its scope). Route confirmations to owners: requirements → business, definitions → analyst, deployment → engineer.</p>
+          </div>
+
+          <div class="step"><div class="num">18</div>
+            <h4>JSON validation</h4>
+            <p>Validate the JSON, enforcing the reconciliation &amp; extraction-hygiene rules (Unknown-flagging, row-level uniqueness before joins, date-range extraction, no pre-join).</p>
+          </div>
+
+          <div class="step"><div class="num">19</div>
+            <h4>Emit &amp; record</h4>
+            <p>Emit the <b>datamart JSON</b>. On confirmation + validation + usage, record it as <b>Type 6 resolved contextual semantics</b> (vector + datamart catalog), scope-tagged and linked to its sub-datamarts; the generalized pattern feeds <b>Type 2</b> and earns canonical status only through repeated usage.</p>
           </div>
         </div>
       </div>
@@ -306,33 +336,36 @@
   <!-- Output -->
   <section class="block" id="output">
     <div class="container">
-      <div class="eyebrow">Step 16 output</div>
+      <div class="eyebrow">Step 19 output</div>
       <h2>Shape of the datamart JSON</h2>
-      <p class="section-lede">Illustrative only — the structure mirrors the build steps (driving table, joins, lookups, filter/group-by order, field selection, renames, metrics).</p>
+      <p class="section-lede">Illustrative only — the structure mirrors the build steps (scope, driving table, joins, lookups, filter/group-by order, field selection, renames, metrics) and is recorded as Type 6.</p>
       <div class="panel">
-        <pre class="code"><span class="c">// illustrative datamart spec — shape follows steps 7–16</span>
+        <pre class="code"><span class="c">// illustrative datamart spec — shape follows steps 7–19</span>
 {
+  <span class="k">"scope"</span>: <span class="s">"department"</span>,                  <span class="c">// step 17 (company..user)</span>
+  <span class="k">"usage"</span>: <span class="s">"scheduled"</span>,                  <span class="c">// step 17 (onetime|scheduled)</span>
+  <span class="k">"composes_of"</span>: [<span class="s">"sub_dm_headcount"</span>],   <span class="c">// step 7 reusable sub-datamarts</span>
   <span class="k">"load"</span>: <span class="s">"incremental"</span>,                 <span class="c">// step 5</span>
-  <span class="k">"driving_table"</span>: <span class="s">"fct_absences"</span>,        <span class="c">// step 7</span>
-  <span class="k">"order"</span>: <span class="s">"filter_then_groupby"</span>,         <span class="c">// step 8</span>
-  <span class="k">"filters"</span>: [                            <span class="c">// step 9 (date range = step 4)</span>
+  <span class="k">"driving_table"</span>: <span class="s">"fct_absences"</span>,        <span class="c">// step 8</span>
+  <span class="k">"order"</span>: <span class="s">"filter_then_groupby"</span>,         <span class="c">// step 9</span>
+  <span class="k">"filters"</span>: [                            <span class="c">// step 10 (date range = step 4)</span>
     { <span class="k">"field"</span>: <span class="s">"absence_date"</span>, <span class="k">"op"</span>: <span class="s">"&gt;="</span>, <span class="k">"value"</span>: <span class="s">"2025-01-01"</span> }
   ],
   <span class="k">"group_by"</span>: [<span class="s">"department_id"</span>, <span class="s">"region"</span>],
-  <span class="k">"transaction_joins"</span>: [],                 <span class="c">// step 10</span>
-  <span class="k">"lookups"</span>: [                            <span class="c">// step 11</span>
+  <span class="k">"transaction_joins"</span>: [],                 <span class="c">// step 11</span>
+  <span class="k">"lookups"</span>: [                            <span class="c">// step 12</span>
     { <span class="k">"table"</span>: <span class="s">"dim_employee"</span>, <span class="k">"mode"</span>: <span class="s">"group_by_only"</span> },
     { <span class="k">"table"</span>: <span class="s">"dim_department"</span>, <span class="k">"mode"</span>: <span class="s">"filter_then_group_by"</span> }
   ],
-  <span class="k">"joins"</span>: [                              <span class="c">// step 12 (from RAG)</span>
+  <span class="k">"joins"</span>: [                              <span class="c">// step 13 (from RAG)</span>
     { <span class="k">"left"</span>: <span class="s">"fct_absences.employee_id"</span>,
       <span class="k">"right"</span>: <span class="s">"dim_employee.employee_id"</span>,
-      <span class="k">"type"</span>: <span class="s">"left"</span>, <span class="k">"unmatched"</span>: <span class="s">"Unknown"</span> }
+      <span class="k">"type"</span>: <span class="s">"left"</span>, <span class="k">"unmatched"</span>: <span class="s">"Unknown"</span> }  <span class="c">// step 18 hygiene</span>
   ],
-  <span class="k">"fields"</span>: [                             <span class="c">// step 13 keep + rename</span>
+  <span class="k">"fields"</span>: [                             <span class="c">// step 14 keep + rename</span>
     { <span class="k">"src"</span>: <span class="s">"dim_department.dept_name"</span>, <span class="k">"as"</span>: <span class="s">"Department"</span> }
   ],
-  <span class="k">"metrics"</span>: [                            <span class="c">// step 14 base first, then compound</span>
+  <span class="k">"metrics"</span>: [                            <span class="c">// step 15 base first, then compound</span>
     { <span class="k">"name"</span>: <span class="s">"Absence Hours"</span>, <span class="k">"expr"</span>: <span class="s">"SUM(absence_hours)"</span> },
     { <span class="k">"name"</span>: <span class="s">"Absence Rate"</span>, <span class="k">"expr"</span>: <span class="s">"Absence Hours / Scheduled Hours"</span> }
   ]
@@ -345,10 +378,10 @@
   <section class="block" id="reuse">
     <div class="container">
       <div class="eyebrow">After the build</div>
-      <h2>Datamart reuse evaluation</h2>
+      <h2>Datamart reuse evaluation (compositional)</h2>
       <div class="panel">
-        <p>Use the method above to build a datamart, then <b>evaluate whether an existing datamart can be leveraged</b> — reducing the build to just <b>adding new data-warehouse tables and columns</b> rather than building from scratch.</p>
-        <div class="callout green"><b>Reuse over rebuild.</b> If an existing datamart already covers most of the driving table, joins, and metrics, extend it with only the net-new DW tables/columns instead of authoring a fresh datamart.</div>
+        <p>Reuse is <b>compositional</b>: decompose the requirement into sub-components, where <b>each sub-component can be a datamart</b>. Each sub-datamart can be composed into the current final datamart <i>and</i> reused in other datamarts for other questions.</p>
+        <div class="callout green"><b>Reuse over rebuild.</b> Decompose → match sub-components against the datamart catalog → reuse what exists, <b>adding only new DW tables/columns</b> → compose the final mart. Canonical (common) datamarts are <b>earned through tenant usage, not seeded</b>.</div>
       </div>
     </div>
   </section>
@@ -361,11 +394,11 @@
       <div class="grid-2">
         <div class="panel">
           <h3>Consumes the RAG</h3>
-          <p>Every "is it in RAG?" check reads the knowledge store: structural docs (Type 1a), live schema (Type 1b), prior patterns (Type 2), semantics &amp; metrics (Type 3), and the tenant's customizations (Type 4) — so the agent can <i>state</i> what it will use instead of asking.</p>
+          <p>Every "is it in RAG?" check reads the knowledge store: structural docs (Type 1a), live schema (Type 1b cache), prior patterns (Type 2), semantics &amp; metrics (Type 3), the tenant's customizations (Type 4), and resolved datamarts (Type 6) — so the agent can <i>suggest</i> what it will use and let the user confirm. Retrieval respects the active <code>embed_model_version</code>.</p>
         </div>
         <div class="panel">
           <h3>Produces for the RAG</h3>
-          <p>On deploy-success the emitted JSON becomes a Type 2 pattern; new metric definitions queue as Type 3 suggestions; user overrides become Type 4 customizations; run telemetry distills to Type 5 insights. See the <a href="rag_population_strategy.html">RAG Population Strategy</a> (Source C).</p>
+          <p>On <b>confirmation + validation + usage</b> (not deploy): the datamart JSON is recorded as <b>Type 6</b> resolved semantics (+ the generalized <b>Type 2</b> pattern, canonical only via repeated use); metric definitions queue as <b>Type 3</b> suggestions (divergences recorded with a reason); user overrides become <b>Type 4</b>; run telemetry distills to <b>Type 5</b>. See the <a href="rag_population_strategy.html">RAG Population Strategy</a> (Source C).</p>
         </div>
       </div>
     </div>
@@ -410,8 +443,8 @@
     applyThemePreference();
 
     const ragMsg = {
-      hit: { who: 'In RAG → state &amp; let dispute', q: '"I\'m going to use <b>Salesforce</b> (Opportunity, Account) and <b>Epicor</b> (HR_ABSENCE) to fetch this. Let me know if that\'s not right."' },
-      miss:{ who: 'Not in RAG → ask', q: '"Which source applications hold the data behind this question?"' }
+      hit: { who: 'In RAG → ask with a suggestion', q: '"I plan to use <b>Salesforce</b> (Opportunity, Account) and <b>Epicor</b> (HR_ABSENCE) to fetch this — confirm, or correct me?"' },
+      miss:{ who: 'Not in RAG → ask openly (then ingest)', q: '"I don\'t have this yet — which source holds it? You can point me to the system or a doc link and I\'ll load it into RAG."' }
     };
     function setRag(k, evt) {
       document.querySelectorAll('[data-rag]').forEach(b => b.classList.toggle('active', b.dataset.rag === k));
@@ -421,9 +454,9 @@
     setRag('hit');
 
     const roleMsg = {
-      biz: { who: 'Business user → business implication', q: '"Should we count an order only when it has a matching customer, or include orders even if the customer is missing (flagged as <b>Unknown</b>)?"' },
-      analyst: { who: 'Analyst → table / column level', q: '"Join <b>orders → customers</b> on <b>customer_id</b> (left join); unmatched customer_id flagged \'Unknown\'. Confirm?"' },
-      eng: { who: 'Engineer → table / column level', q: '"<b>LEFT JOIN</b> fct_orders f ON f.customer_id = dim_customer.customer_id; null key → \'Unknown\' bucket. Confirm key &amp; join type?"' }
+      biz: { who: 'Business user → owner of requirements', q: '"Should we count an order only when it has a matching customer, or include orders even if the customer is missing (flagged as <b>Unknown</b>)?"' },
+      analyst: { who: 'Analyst → owner of definitions', q: '"Join <b>orders → customers</b> on <b>customer_id</b> (left join); unmatched customer_id flagged \'Unknown\'. Confirm the definition?"' },
+      eng: { who: 'Engineer → owner of deployments', q: '"<b>LEFT JOIN</b> fct_orders f ON f.customer_id = dim_customer.customer_id; null key → \'Unknown\' bucket. Confirm key, join type &amp; load?"' }
     };
     function setRole(k, evt) {
       document.querySelectorAll('[data-role]').forEach(b => b.classList.toggle('active', b.dataset.role === k));

@@ -187,8 +187,12 @@ CREATE SCHEMA IF NOT EXISTS kb;
 SET search_path = kb;
 
 CREATE TYPE knowledge_type AS ENUM
-    ('sor_doc','pattern','semantics','telemetry_insight','customization');
+    ('sor_doc','pattern','semantics','telemetry_insight','customization',
+     'resolved_semantics');                              -- Type 6: DW/datamart catalog
 CREATE TYPE chunk_status   AS ENUM ('active','deprecated');
+
+-- Type 6 scope: resolved context spans the company down to a single user.
+CREATE TYPE semantic_scope AS ENUM ('company','department','purpose','role','user');
 
 -- ---- the vector table (write-mostly-once) --------------------------
 CREATE TABLE kb_chunk (
@@ -204,9 +208,17 @@ CREATE TABLE kb_chunk (
     superseded_by       uuid REFERENCES kb_chunk(id),
     confidence          real,                           -- telemetry_insight decay
     last_reinforced_at  timestamptz,                    -- telemetry_insight decay
+    scope               semantic_scope,                 -- Type 6: required for resolved_semantics
+    scope_ref           text,                           -- dept id / purpose key / role / user id
+    composes_of         uuid[],                         -- Type 6: sub-datamart chunk ids (composition)
     metadata            jsonb NOT NULL DEFAULT '{}',     -- type-specific fields
     created_at          timestamptz NOT NULL DEFAULT now(),
-    updated_at          timestamptz NOT NULL DEFAULT now()
+    updated_at          timestamptz NOT NULL DEFAULT now(),
+    -- resolved_semantics must carry a scope; other types must not.
+    CONSTRAINT scope_only_for_resolved CHECK (
+        (knowledge_type = 'resolved_semantics' AND scope IS NOT NULL) OR
+        (knowledge_type <> 'resolved_semantics' AND scope IS NULL)
+    )
 );
 
 -- ANN index (cosine). Partial per-type indexes keep retrieval scoped.
@@ -216,6 +228,9 @@ CREATE INDEX ix_chunk_type_status ON kb_chunk (knowledge_type, status);
 CREATE INDEX ix_chunk_namespace   ON kb_chunk (namespace);
 CREATE INDEX ix_chunk_supersedes  ON kb_chunk (supersedes);
 CREATE INDEX ix_chunk_meta_gin    ON kb_chunk USING gin (metadata);
+-- Type 6 retrieval is scoped: company-wide first, then narrower scopes.
+CREATE INDEX ix_chunk_scope ON kb_chunk (knowledge_type, scope, scope_ref)
+    WHERE knowledge_type = 'resolved_semantics';
 
 -- ---- pattern stats (hot-updating; split off the big vector row) ----
 -- 1:1 with kb_chunk rows where knowledge_type='pattern'.
@@ -236,6 +251,51 @@ CREATE TABLE pattern_stats (
 CREATE INDEX ix_pattern_failrate ON pattern_stats (failure_rate DESC);
 CREATE INDEX ix_pattern_disuse   ON pattern_stats (last_selected_at);
 
+-- ---- Type 6 relational catalog (concrete, runnable, reusable) -------
+-- The vector kb_chunk row (knowledge_type='resolved_semantics') is for
+-- discovery; these tables hold the concrete, runnable, composable JSON the
+-- datamart-reuse step queries. Tenant-scoped (live in the tenant database).
+CREATE TYPE load_mode      AS ENUM ('full','incremental');
+CREATE TYPE usage_mode     AS ENUM ('onetime','scheduled');   -- C5: drives confidence
+CREATE TYPE dw_table_role  AS ENUM ('transaction','dimension');
+
+-- DW tables registered/extended while building datamarts (C1/C6 of reuse).
+CREATE TABLE dw_table_catalog (
+    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name          text NOT NULL,
+    table_role    dw_table_role NOT NULL,                 -- transaction | dimension
+    source_system text,                                   -- origin SOR
+    load_mode     load_mode NOT NULL,                     -- full | incremental
+    columns       jsonb NOT NULL DEFAULT '[]',            -- registered columns (add-only growth)
+    dw_table_json jsonb NOT NULL,                         -- the working DW-table JSON
+    created_at    timestamptz NOT NULL DEFAULT now(),
+    updated_at    timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (name, source_system)
+);
+
+-- Datamarts (incl. reusable sub-datamarts). composes_of = sub-datamart ids.
+CREATE TABLE datamart_catalog (
+    id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    name            text NOT NULL,
+    scope           semantic_scope NOT NULL,              -- company..user (C2)
+    scope_ref       text,                                 -- dept/purpose/role/user key
+    purpose         text,                                 -- the question/requirement it serves
+    usage_mode      usage_mode,                           -- onetime | scheduled (C5)
+    confirmed_by    text,                                 -- role owner who confirmed (C12)
+    validated       boolean NOT NULL DEFAULT false,       -- data validation passed (C5)
+    is_canonical    boolean NOT NULL DEFAULT false,       -- earned via usage, never seeded (C11)
+    driving_table   text,                                 -- anchor (build step 7)
+    datamart_json   jsonb NOT NULL,                       -- the working datamart JSON (C1)
+    composes_of     uuid[],                               -- reusable sub-datamarts (C3)
+    chunk_id        uuid REFERENCES kb_chunk(id),         -- discovery vector (Type 6)
+    embed_model_version text,                             -- coordinates re-embed (C13)
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX ix_datamart_scope     ON datamart_catalog (scope, scope_ref);
+CREATE INDEX ix_datamart_canonical ON datamart_catalog (is_canonical) WHERE is_canonical;
+CREATE INDEX ix_datamart_composes  ON datamart_catalog USING gin (composes_of);
+
 -- =====================================================================
 -- NOTES
 --  • Live source schema (Type 1b) is NOT stored here — metadata-service
@@ -248,4 +308,13 @@ CREATE INDEX ix_pattern_disuse   ON pattern_stats (last_selected_at);
 --    the new embed_model_version; never mix model versions in one ANN scan.
 --  • Tenant offboarding = DROP DATABASE <tenant db>, then mark
 --    tenant_catalog.status='dropped'. No cross-tenant cleanup needed.
+--  • Type 6 (resolved_semantics): the kb_chunk row is the discovery vector;
+--    dw_table_catalog + datamart_catalog hold the concrete runnable JSON the
+--    reuse step composes. Tenant-scoped — agents are tenant-specific (C10).
+--  • Capture is usage-based, not deploy-based (C5): onetime usage = low
+--    reliance/narrow scope; scheduled usage = a purpose served (rely, but
+--    confirm scope). datamart_catalog.usage_mode/validated/confirmed_by record it.
+--  • Canonical status is EARNED via tenant usage, never seeded (C11):
+--    is_canonical flips on once a datamart/pattern recurs across usage.
+--  • Retrieval co-mixes only same embed_model_version vectors (C13).
 -- =====================================================================

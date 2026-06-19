@@ -264,17 +264,17 @@
               </tr>
               <tr>
                 <td><span class="src-pill B">B</span> Industry seed metadata</td>
-                <td>Type 3 semantics + seed Type 2</td>
+                <td>Type 3 semantics (generic only)</td>
                 <td><span class="chip gated">Gated</span></td>
-                <td><code>kb:semantics:{industry}:{version}</code> · <code>kb:patterns:global</code></td>
+                <td><code>kb:semantics:{industry}:{version}</code></td>
                 <td>Global (per vertical)</td>
               </tr>
               <tr>
                 <td><span class="src-pill C">C</span> End-user Q&amp;A (the bot)</td>
-                <td>Type 2 patterns · Type 3 suggestions · Type 4 customizations · Type 5 telemetry</td>
+                <td>Type 6 datamarts · Type 2 patterns · Type 3 suggestions · Type 4 customizations · Type 5 telemetry</td>
                 <td><span class="chip hot">Hot</span></td>
-                <td><code>kb:patterns:global</code> · tenant DB · <code>kb:telemetry-insights:*</code></td>
-                <td>Global + tenant</td>
+                <td>tenant DB (datamart catalog) · <code>kb:patterns:global</code> · <code>kb:telemetry-insights:*</code></td>
+                <td>Tenant (+ global patterns)</td>
               </tr>
               <tr>
                 <td style="color:var(--muted);">— (not a population source)</td>
@@ -318,25 +318,26 @@
 
         <div class="src-body" data-src="B">
           <h3>B · Industry seed metadata <span class="chip gated">Gated · global</span></h3>
-          <p>Curated, vertical-specific knowledge: metric / KPI definitions, formulas, canonical business rules, synonyms, plus a starter set of canonical reconciliation patterns for the industry.</p>
+          <p>Curated, vertical-specific <b>generic</b> knowledge: metric / KPI definitions, formulas, business rules, synonyms. (No canonical datamarts/patterns — those are earned via usage, not seeded.)</p>
           <div class="kt-meta-grid">
-            <div>Acquire</div><div>Team-authored per vertical, seeded from industry docs — definitions, formulas, synonyms, canonical business rules, and a starter set of reconciliation patterns for the industry.</div>
+            <div>Acquire</div><div>Team-authored per vertical, seeded from industry docs — definitions, formulas, synonyms, business rules.</div>
             <div>Transform</div><div>Author → review/approve → version → embed with definition, formula, <code>industry</code> tag, synonyms.</div>
             <div>Gate</div><div>Human-curated, versioned. Corrected definitions supersede; prior kept read-only for lineage.</div>
-            <div>Land</div><div>Type 3 → <code>kb:semantics:{industry}:{version}</code>. Plus a few hand-authored canonical patterns published via the manual-template trigger into Type 2 (<code>kb:patterns:global</code>).</div>
-            <div>Role</div><div>Lets the bot's BA-style questions reference <i>business</i> concepts ("net revenue", "absence rate") instead of columns; the seeded patterns break the Type 2 cold start.</div>
+            <div>Land</div><div>Type 3 → <code>kb:semantics:{industry}:{version}</code> (generic semantics only).</div>
+            <div>Role</div><div>Lets the bot's BA-style questions reference <i>business</i> concepts ("net revenue", "absence rate") instead of columns. <b>Canonicals emerge later from tenant usage (C11)</b> — none on day one.</div>
           </div>
         </div>
 
         <div class="src-body" data-src="C">
-          <h3>C · End-user Q&amp;A (the Data Engineering Bot) <span class="chip hot">Hot · global + tenant</span></h3>
-          <p>The bot runs its fixed BA-style 6-step method and emits pipeline JSON. The method is an input, not redefined here — the strategy harvests what it produces. Each artifact lands in a different knowledge type.</p>
+          <h3>C · End-user Q&amp;A (the Data Engineering Bot) <span class="chip hot">Hot · tenant-scoped</span></h3>
+          <p>The bot runs its fixed BA-style method and emits datamart / pipeline JSON. The method is an input, not redefined here — the strategy harvests what it produces. The agent is <b>tenant-specific</b> (C10). Each artifact lands in a different knowledge type.</p>
           <div class="kt-meta-grid">
-            <div>Pipeline JSON</div><div>→ <b>Type 2 pattern.</b> On deploy-success + reconciliation pass, extract the pattern signature (source pair, transform graph, reconciliation rules, dedup/lookup choices, the calculated-metric DAG) → <b>scrub tenant values</b> → generalize → embed → <code>kb:patterns:global</code>.</div>
-            <div>Confirmed metrics</div><div>→ <b>Type 3 suggestions.</b> A user-defined metric the glossary lacks enters the <b>batch-proposed-diff queue — never auto-written</b>. Approved items version back into Source B's glossary.</div>
-            <div>Overrides</div><div>→ <b>Type 4 customization.</b> Renames, custom rules, transform tweaks captured as a diff vs the generated baseline → the tenant's own database (physically isolated).</div>
-            <div>Run telemetry</div><div>→ <b>Type 5 insight.</b> Rules gate → LLM phrases survivors into <code>condition → outcome</code> statements; selection/success counts drive pattern reinforcement and decay.</div>
-            <div>Role</div><div>The self-improving core: every pipeline the bot builds makes the next suggestion smarter, and feeds B and Type 5.</div>
+            <div>Datamart JSON</div><div>→ <b>Type 6 resolved semantics.</b> The working datamart + DWs + columns, on <b>confirmation + validation + usage</b> (not deploy), recorded scope-tagged (company…user) and composable (sub-datamarts) in the tenant datamart catalog.</div>
+            <div>Pattern</div><div>→ <b>Type 2.</b> The generalized signature (scrub tenant values → generalize) → <code>kb:patterns:global</code>; becomes <b>canonical only via repeated usage</b>, never seeded.</div>
+            <div>Unknowns</div><div>If a source (incl. webhooks / FTP files) isn't in RAG, the agent <b>asks the user to supply it or a doc link</b> and loads it into Type 1a (C7).</div>
+            <div>Metrics</div><div>→ <b>Type 3 suggestions.</b> A new definition queues for batch review; if <b>incongruent</b> with an existing one, the agent asks <b>why</b> and records the reason in RAG (C8). Never auto-written.</div>
+            <div>Overrides</div><div>→ <b>Type 4 customization.</b> Diff vs the generated baseline → the tenant's own database (physically isolated).</div>
+            <div>Run telemetry</div><div>→ <b>Type 5 insight.</b> Rules gate → LLM phrases survivors; selection/success counts drive reinforcement and decay.</div>
           </div>
         </div>
       </div>
@@ -375,11 +376,11 @@
         </div>
         <pre class="ascii">   ┌──────────────────────────────────────────────────────────────┐
    │   A vendor docs ─┐                                            │
-   │   B industry seed ┼──►  RAG  ──►  Bot Q&amp;A (6-step method)     │
-   │   C earned (2/3/4/5) ─┘     ▲          │ pipeline JSON         │
+   │   B industry seed ┼──►  RAG  ──►  Bot Q&amp;A (build method)      │
+   │   C earned (2/3/4/5/6) ┘    ▲          │ datamart JSON         │
    │                            │          ▼                       │
-   │                            └──── deploy-success ◄── reconcile  │
-   │                              (scrub → generalize → embed)      │
+   │                            └─ confirmed + validated + USED ◄─┘ │
+   │                              (Type 6 + scrub→generalize→Type 2)│
    └──────────────────────────────────────────────────────────────┘</pre>
       </div>
     </div>
@@ -397,18 +398,18 @@
           <ul class="clean">
             <li><span class="src-pill A">A</span> offers candidate tables / fields</li>
             <li><span class="src-pill B">B</span> supplies metric / KPI definitions and business rules</li>
-            <li><span class="src-pill C">C</span> supplies proven patterns + this tenant's customizations</li>
+            <li><span class="src-pill C">C</span> supplies reusable datamarts (Type 6), proven patterns + this tenant's customizations</li>
           </ul>
           <p style="margin-top:14px;margin-bottom:0;">That combination is how the BA-framed questions get grounded, table-name-free suggestions.</p>
         </div>
         <div class="panel">
-          <h3>At deploy-time, C flows back</h3>
+          <h3>On confirmed use, C flows back</h3>
           <ul class="clean">
-            <li>Patterns grow <b>Type 2</b></li>
-            <li>Confirmed metric definitions enrich <b>Source B</b></li>
-            <li>Run telemetry grows <b>Type 5</b></li>
+            <li>Resolved datamarts grow <b>Type 6</b> (and earn canonical status over time)</li>
+            <li>Generalized patterns grow <b>Type 2</b></li>
+            <li>Metric definitions enrich <b>Source B</b>; run telemetry grows <b>Type 5</b></li>
           </ul>
-          <div class="callout green" style="margin-top:16px;">A and B are loaded ahead; C compounds them with every deploy. The store gets denser and more tenant-aware over time without anyone re-authoring the grounding.</div>
+          <div class="callout green" style="margin-top:16px;">A and B are loaded ahead; C compounds them on <b>confirmation + validation + usage</b> (not deploy). The store gets denser and more tenant-aware over time without anyone re-authoring the grounding.</div>
         </div>
       </div>
     </div>
@@ -422,14 +423,14 @@
       <div class="panel">
         <div class="loop" style="margin-bottom:18px;">
           <span class="step">1 · Load <span class="src-pill A">A</span> structural</span><span class="arrow">→</span>
-          <span class="step">2 · Load <span class="src-pill B">B</span> semantic</span><span class="arrow">→</span>
-          <span class="step">3 · Seed canonical Type 2 from B</span><span class="arrow">→</span>
-          <span class="step">4 · Turn on the bot — <span class="src-pill C">C</span> compounds</span>
+          <span class="step">2 · Load <span class="src-pill B">B</span> generic semantics</span><span class="arrow">→</span>
+          <span class="step">3 · Turn on the bot — <span class="src-pill C">C</span> compounds</span><span class="arrow">→</span>
+          <span class="step">4 · Canonicals emerge from usage</span>
         </div>
         <ul class="clean">
-          <li><b>Load A (structural) and B (semantic) first</b> — grounding the bot needs before its first question.</li>
-          <li><b>Seed a handful of canonical Type 2 patterns from B</b> — so the bot has something to retrieve on day one (breaks the empty-loop cold start).</li>
-          <li><b>Turn on the bot</b> — Source C begins compounding Types 2 / 3 / 4 / 5 with every deploy.</li>
+          <li><b>Load A (structural) and B (generic semantics) first</b> — grounding the bot needs before its first question.</li>
+          <li><b>No canonicals on day one (C11).</b> The cold start is accepted: the bot asks more early and learns. Canonical datamarts/patterns are <b>earned</b> as they recur across tenant usage.</li>
+          <li><b>Turn on the bot</b> — Source C compounds Types 2 / 3 / 4 / 5 / 6 on confirmed-and-used builds.</li>
         </ul>
       </div>
     </div>
