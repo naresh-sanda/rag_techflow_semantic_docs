@@ -154,6 +154,7 @@
   <a href="#principles">Principles</a>
   <a href="#dataflow">Data Flow</a>
   <a href="#tracks">Two Tracks</a>
+  <a href="#intake">Intake</a>
   <a href="#rag">Into the RAG</a>
   <a href="#payoff">Question Cut</a>
   <a href="#source">Source File</a>
@@ -235,6 +236,47 @@
           <li>If structure isn't known, the agent asks for it or a <b>doc link</b> and loads it into RAG (C7)</li>
         </ul>
         <div class="callout" style="margin-top:18px;">"As they want to get more systems involved, we onboard each system with a bit more detail" — the inventory deepens over time without a big upfront ask.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Intake -->
+<section class="block" id="intake">
+  <div class="container">
+    <div class="eyebrow">How context gets in</div>
+    <h2>Intake — Q&amp;A <span class="editorial-font">and</span> document / link upload</h2>
+    <p class="section-lede">Customers already have decks, brochures, contracts, and a website that describe the business. So context enters two ways — both feed the same suggest-&-confirm loop.</p>
+
+    <div class="panel">
+      <h3>Supported formats</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:6px;">
+        <div class="qcat" style="margin:0;"><h4><span class="icon">📄</span> PDF</h4><p>Decks, brochures, contracts, annual reports — text parse, <b>OCR</b> for scans.</p></div>
+        <div class="qcat" style="margin:0;"><h4><span class="icon">📝</span> Word</h4><p><code>.docx</code> overviews, SOPs, process docs — text + structure parse.</p></div>
+        <div class="qcat" style="margin:0;"><h4><span class="icon">🖼️</span> Images</h4><p>Logos, screenshots, org charts, scanned one-pagers — <b>OCR + vision</b>.</p></div>
+        <div class="qcat" style="margin:0;"><h4><span class="icon">🔗</span> Website links</h4><p>Homepage, About, Products, Pricing — fetch + readability extraction.</p></div>
+      </div>
+      <p style="font-size:12.5px;color:var(--muted);margin:14px 0 0;">Extensible — spreadsheets, slides, plain text: any format → extract → propose → confirm.</p>
+    </div>
+
+    <div class="panel">
+      <h3>The ingestion flow</h3>
+      <div class="vc-stages" style="margin-top:4px;">
+        <span class="vc-stage"><span class="dot"></span>Upload / link</span><span class="vc-arrow">→</span>
+        <span class="vc-stage"><span class="dot"></span>Extract <span style="color:var(--muted);font-weight:500;">(parse · OCR · vision · fetch)</span></span><span class="vc-arrow">→</span>
+        <span class="vc-stage added"><span class="dot"></span>Propose candidates</span><span class="vc-arrow">→</span>
+        <span class="vc-stage confirmed"><span class="dot"></span>User confirms</span><span class="vc-arrow">→</span>
+        <span class="vc-stage"><span class="dot"></span>Type 7</span>
+      </div>
+      <div class="grid-2" style="margin-top:18px;">
+        <div>
+          <div class="callout"><b>Never auto-written.</b> Extracted business facts are <i>proposals</i>; the business user confirms — same guardrail as everywhere (suggest &amp; confirm).</div>
+          <div class="callout indigo"><b>Provenance.</b> Every artifact is recorded (format, file / URL, status) and linked to the facts it produced — each confirmed field traces back to its source.</div>
+        </div>
+        <div>
+          <div class="callout green"><b>Living.</b> Re-uploading an updated deck or re-fetching the site <b>supersedes</b> the prior extraction (lineage retained) — onboarding stays current.</div>
+          <div class="callout" style="border-left-color:var(--red);background:rgba(239,68,68,.12);"><b>Privacy.</b> The user uploads / links; the platform never reaches into systems itself. Document content is data to extract, not instructions to act on.</div>
+        </div>
       </div>
     </div>
   </div>
