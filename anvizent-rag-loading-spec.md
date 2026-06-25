@@ -110,6 +110,20 @@ The data-warehouse / datamart layer the agent operates on. A datamart's **workin
 
 ---
 
+## Type 7 — Business onboarding context (living tenant profile)
+
+The tenant's own business context — what the business is, what it sells, how it makes money, and how its data flows across the revenue lifecycle. It is the tenant-specific grounding a new customer has on day one (since canonicals are emergent and Source B is generic). See `anvizent-business-onboarding-spec.md`.
+
+- **Source:** Business onboarding Q&A (**Source D**) — business user supplies it; system detail added progressively per system.
+- **Trigger:** Foundational onboarding, **plus lifecycle updates** any time the business changes (new product/revenue stream/system/process).
+- **Transform:** Discovery vector in `kb_chunk` (`business_context`) **plus** structured `business_context` / `value_chain_stage` / `system_inventory` rows.
+- **Data flow:** Capturing the flow is **canonical**; the **stages are derived per business and user-confirmed** (suggest & confirm), never hard-coded.
+- **Scope:** `company` (C2). **Namespace:** tenant DB. **Tenant-specific** (C10).
+- **Refresh:** **Living record** — updates supersede prior with lineage retained.
+- **Eviction:** Version-supersede; prior kept read-only for lineage.
+
+---
+
 ## Shared infrastructure
 
 - **Embedding-model versioning.** Stamp the embedding model version into every namespace key or record. Changing the embedding model means a re-embed pass — mismatched-model vectors retrieved together degrade silently.
@@ -131,6 +145,7 @@ The data-warehouse / datamart layer the agent operates on. A datamart's **workin
 8. **Capture is usage-based, not deploy-based (C5):** confirmation + validation + usage; onetime = narrow/low, scheduled = purpose-served (confirm scope).
 9. **Canonicals are emergent, not seeded (C11):** common datamarts/patterns are earned through tenant usage.
 10. **Agents are tenant-specific (C10):** global agents deferred.
+11. **Type 7:** Business onboarding context — tenant business profile + derived/confirmed value chain + system inventory; living record, consulted first to cut question count.
 
 ## Configuration & adaptive tuning
 

@@ -161,9 +161,14 @@
     .src-pill.A { background: var(--green-glow); color: #34d399; }
     .src-pill.B { background: var(--indigo-glow); color: #a5b4fc; }
     .src-pill.C { background: rgba(244,121,32,0.15); color: var(--primary-light); }
+    .src-pill.D { background: rgba(194,65,12,0.18); color: #fb923c; }
     body.light-theme .src-pill.A { background:#d1fae5; color:#059669; }
     body.light-theme .src-pill.B { background:#e0e7ff; color:#4f46e5; }
     body.light-theme .src-pill.C { background:#ffebd5; color:#ea580c; }
+    body.light-theme .src-pill.D { background:#ffedd5; color:#c2410c; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    @media (max-width: 980px) { .grid-4 { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .grid-4 { grid-template-columns: 1fr; } }
 
     .files-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 16px; }
     .file-card { display: flex; gap: 14px; align-items: flex-start; background: var(--card-2); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: var(--transition); }
@@ -209,7 +214,7 @@
   <nav class="section-nav" id="sectionNav">
     <a href="#model">Three Truths</a>
     <a href="#map">Source Map</a>
-    <a href="#sources">The Three Sources</a>
+    <a href="#sources">The Four Sources</a>
     <a href="#loop">The Bot Loop</a>
     <a href="#compose">Composition</a>
     <a href="#sequence">Sequencing</a>
@@ -221,9 +226,9 @@
   <section class="block" id="model">
     <div class="container">
       <div class="eyebrow">The mental model</div>
-      <h2>Three sources, three kinds of truth</h2>
+      <h2>Four sources, four kinds of truth</h2>
       <p class="section-lede">Each input source carries a distinct kind of truth into the RAG. Keeping them distinct is what lets the bot ask business-language questions and still ground every suggestion.</p>
-      <div class="grid-3">
+      <div class="grid-4">
         <div class="panel">
           <div class="src-pill A">SOURCE A</div>
           <h3>Structural truth</h3>
@@ -235,12 +240,17 @@
           <p style="margin:0;color:var(--muted);"><i>What it means here.</i> Industry-specific metric definitions, formulas, business rules, synonyms — the vertical's shared vocabulary.</p>
         </div>
         <div class="panel">
+          <div class="src-pill D">SOURCE D</div>
+          <h3>Self truth</h3>
+          <p style="margin:0;color:var(--muted);"><i>Who this tenant is.</i> The business's own context — offerings, economics, and how its data flows. Captured via <a href="rag_business_onboarding.html">business onboarding</a> (Type 7); the day-one tenant grounding.</p>
+        </div>
+        <div class="panel">
           <div class="src-pill C">SOURCE C</div>
           <h3>Experiential truth</h3>
           <p style="margin:0;color:var(--muted);"><i>What actually works.</i> The patterns, customizations, and outcomes earned from real end-user Q&amp;A → deploy loops.</p>
         </div>
       </div>
-      <div class="callout"><b>A &amp; B make the bot competent. C makes it expert.</b> A and B are loaded ahead as grounding; C accumulates once the bot is live and flows back to enrich both.</div>
+      <div class="callout"><b>A &amp; B make the bot competent. D grounds it in this tenant. C makes it expert.</b> A, B and D are loaded ahead as grounding; C accumulates once the bot is live and flows back to enrich them. D is a living record, maintained across the customer lifecycle.</div>
     </div>
   </section>
 
@@ -277,6 +287,13 @@
                 <td>Tenant (+ global patterns)</td>
               </tr>
               <tr>
+                <td><span class="src-pill D">D</span> Business onboarding</td>
+                <td>Type 7 business context (living)</td>
+                <td><span class="chip gated">Gated</span></td>
+                <td>tenant DB · <code>kb:business-context</code></td>
+                <td>Tenant (company scope)</td>
+              </tr>
+              <tr>
                 <td style="color:var(--muted);">— (not a population source)</td>
                 <td>Type 1b live schema</td>
                 <td><span class="chip live">Live</span></td>
@@ -290,16 +307,17 @@
     </div>
   </section>
 
-  <!-- The three sources -->
+  <!-- The four sources -->
   <section class="block" id="sources">
     <div class="container">
       <div class="eyebrow">In detail</div>
-      <h2>The three sources</h2>
+      <h2>The four sources</h2>
       <p class="section-lede">Select a source to see how it is acquired, transformed, gated, and landed.</p>
       <div class="panel">
         <div class="src-tabs" id="srcTabs">
           <div class="src-tab active" data-src="A"><span class="lbl">SOURCE A</span><span class="nm">Vendor standardized metadata</span><span class="truth">structural truth — what exists</span></div>
           <div class="src-tab" data-src="B"><span class="lbl">SOURCE B</span><span class="nm">Industry seed metadata</span><span class="truth">semantic truth — what it means</span></div>
+          <div class="src-tab" data-src="D"><span class="lbl">SOURCE D</span><span class="nm">Business onboarding</span><span class="truth">self truth — who the tenant is</span></div>
           <div class="src-tab" data-src="C"><span class="lbl">SOURCE C</span><span class="nm">End-user Q&amp;A</span><span class="truth">experiential truth — what works</span></div>
         </div>
 
@@ -325,6 +343,18 @@
             <div>Gate</div><div>Human-curated, versioned. Corrected definitions supersede; prior kept read-only for lineage.</div>
             <div>Land</div><div>Type 3 → <code>kb:semantics:{industry}:{version}</code> (generic semantics only).</div>
             <div>Role</div><div>Lets the bot's BA-style questions reference <i>business</i> concepts ("net revenue", "absence rate") instead of columns. <b>Canonicals emerge later from tenant usage (C11)</b> — none on day one.</div>
+          </div>
+        </div>
+
+        <div class="src-body" data-src="D">
+          <h3>D · Business onboarding <span class="chip gated">Gated · tenant · living</span></h3>
+          <p>The tenant's own business context — what it is, what it sells, how it makes money, and how its data flows. The day-one grounding a new tenant supplies (since canonicals are emergent and Source B is generic). See the <a href="rag_business_onboarding.html">Business Onboarding</a> spec.</p>
+          <div class="kt-meta-grid">
+            <div>Acquire</div><div>Business onboarding Q&amp;A (business user); system detail added progressively as systems are brought in.</div>
+            <div>Transform</div><div>Capture identity / offerings / differentiation / economics; <b>derive the data-flow stages and confirm them</b> with the user (never hard-coded).</div>
+            <div>Gate</div><div>Human-supplied; a <b>living record</b> — lifecycle updates supersede with lineage retained.</div>
+            <div>Land</div><div>Type 7 → tenant DB (<code>business_context</code> / <code>value_chain_stage</code> / <code>system_inventory</code>) + discovery vector.</div>
+            <div>Role</div><div>Consulted <b>first</b> by the agent so it can suggest sources, stages and metrics — cutting the questions on every new pipeline build.</div>
           </div>
         </div>
 

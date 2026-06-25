@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Onboarding — Tenant Context (Type 7)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #f47920; --primary-light: #ffb066; --primary-glow: rgba(244,121,32,.15);
+    --terracotta: #c2410c; --indigo: #6366f1; --indigo-glow: rgba(99,102,241,.15);
+    --green: #10b981; --green-glow: rgba(16,185,129,.15); --amber: #f59e0b; --red: #ef4444;
+    --bg: #0b0f19; --bg-grid: rgba(255,255,255,.02); --card: #111827; --card-2: #0e1524;
+    --card-border: rgba(255,255,255,.08); --text: #d1d5db; --navy: #f9fafb; --muted: #9ca3af;
+    --border: #1f2937; --badge-bg: #1e293b; --code-bg: #0a0e17;
+    --shadow: 0 4px 20px -2px rgba(0,0,0,.5), 0 2px 8px -1px rgba(0,0,0,.3);
+    --shadow-hover: 0 25px 40px -10px rgba(244,121,32,.15), 0 10px 20px -5px rgba(0,0,0,.4);
+    --transition: all .3s cubic-bezier(.4,0,.2,1);
+  }
+  body.light-theme {
+    --bg: #f8fafc; --bg-grid: rgba(15,23,42,.015); --card: #fff; --card-2: #f8fafc;
+    --card-border: rgba(15,23,42,.06); --text: #475569; --navy: #0f172a; --muted: #64748b;
+    --border: #e2e8f0; --badge-bg: #f1f5f9; --code-bg: #0f172a;
+    --shadow: 0 4px 6px -1px rgba(0,0,0,.05), 0 2px 4px -1px rgba(0,0,0,.03);
+    --shadow-hover: 0 20px 25px -5px rgba(99,102,241,.1), 0 10px 10px -5px rgba(99,102,241,.04);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+  body { margin:0; font-family:'Inter',system-ui,sans-serif; background:var(--bg);
+    background-image: linear-gradient(to right,var(--bg-grid) 1px,transparent 1px), linear-gradient(to bottom,var(--bg-grid) 1px,transparent 1px);
+    background-size:40px 40px; color:var(--text); line-height:1.65; transition:var(--transition); overflow-x:hidden; }
+  h1,h2,h3,h4 { font-family:'Space Grotesk',sans-serif; color:var(--navy); letter-spacing:-.02em; margin-top:0; }
+  .editorial-font { font-family:'Fraunces',Georgia,serif; font-style:italic; }
+  code,pre { font-family:'JetBrains Mono',monospace; }
+  a { text-decoration:none; transition:var(--transition); color:var(--primary); }
+  a:hover { color:var(--primary-light); }
+  .container { max-width:1140px; margin:0 auto; padding:0 24px; }
+
+  header.topbar { position:sticky; top:0; z-index:100; background:color-mix(in srgb,var(--bg) 85%,transparent); backdrop-filter:blur(12px); border-bottom:1px solid var(--border); }
+  .topbar-inner { max-width:1140px; margin:0 auto; padding:14px 24px; display:flex; justify-content:space-between; align-items:center; gap:16px; }
+  .logo-container { display:flex; align-items:center; gap:12px; }
+  .logo-badge { background:var(--primary); color:#fff; font-weight:700; font-family:'Space Grotesk',sans-serif; padding:6px 12px; border-radius:6px; font-size:14px; letter-spacing:.05em; }
+  .logo-text h2 { font-size:17px; margin:0; line-height:1; }
+  .logo-text p { margin:3px 0 0; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em; }
+  .nav-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+  .pill-link,.theme-toggle-btn { display:inline-flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--card-border); color:var(--navy); padding:8px 16px; border-radius:30px; cursor:pointer; font-size:13px; font-weight:600; box-shadow:var(--shadow); transition:var(--transition); font-family:'Inter',sans-serif; }
+  .pill-link:hover,.theme-toggle-btn:hover { border-color:var(--primary); transform:translateY(-2px); color:var(--navy); }
+
+  .hero { text-align:center; padding:70px 0 30px; }
+  .hero-tag { display:inline-block; background:var(--primary-glow); color:var(--primary); border:1px solid rgba(244,121,32,.3); font-size:12px; font-weight:600; padding:6px 16px; border-radius:20px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:24px; }
+  body.light-theme .hero-tag { background:var(--badge-bg); border-color:var(--border); }
+  .hero h1 { font-size:45px; line-height:1.1; margin:0 auto 18px; max-width:860px; }
+  .hero p.lede { font-size:18px; color:var(--muted); max-width:760px; margin:0 auto; }
+  .hero .meta { font-size:13px; color:var(--muted); margin-top:18px; }
+  .hero .meta b { color:var(--navy); }
+
+  .section-nav { position:sticky; top:64px; z-index:90; display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:14px 0; margin:24px 0 10px; background:color-mix(in srgb,var(--bg) 80%,transparent); backdrop-filter:blur(8px); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .section-nav a { font-size:12.5px; font-weight:600; color:var(--muted); padding:6px 13px; border-radius:20px; border:1px solid transparent; }
+  .section-nav a:hover { color:var(--navy); background:var(--badge-bg); }
+  .section-nav a.active { color:var(--primary); border-color:rgba(244,121,32,.35); background:var(--primary-glow); }
+
+  section.block { padding:54px 0 10px; }
+  .eyebrow { font-size:11px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--primary); margin-bottom:10px; }
+  section.block > .container > h2 { font-size:32px; margin-bottom:14px; }
+  .section-lede { font-size:16px; color:var(--muted); max-width:780px; margin:0 0 32px; }
+
+  .panel { background:var(--card); border:1px solid var(--card-border); border-radius:16px; padding:32px; box-shadow:var(--shadow); margin-bottom:24px; }
+  .panel h3 { font-size:20px; margin-bottom:12px; }
+  .panel h4 { font-size:15px; margin:18px 0 8px; color:var(--navy); }
+  .panel p { margin:0 0 14px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media (max-width:820px){ .grid-2 { grid-template-columns:1fr; } }
+
+  .callout { border-left:3px solid var(--primary); background:var(--primary-glow); padding:16px 20px; border-radius:0 10px 10px 0; margin:0 0 20px; font-size:14.5px; }
+  .callout.indigo { border-left-color:var(--indigo); background:var(--indigo-glow); }
+  .callout.green { border-left-color:var(--green); background:var(--green-glow); }
+  .callout b { color:var(--navy); }
+
+  .chip { display:inline-block; font-size:11px; font-weight:700; padding:2px 9px; border-radius:5px; letter-spacing:.04em; text-transform:uppercase; white-space:nowrap; }
+  .chip.gated { background:var(--indigo-glow); color:#a5b4fc; }
+  .chip.live { background:var(--green-glow); color:#34d399; }
+  body.light-theme .chip.gated { background:#e0e7ff; color:#4f46e5; }
+  body.light-theme .chip.live { background:#d1fae5; color:#059669; }
+
+  ul.clean { list-style:none; padding:0; margin:0; }
+  ul.clean li { padding:7px 0 7px 26px; position:relative; font-size:14.5px; border-bottom:1px dashed var(--border); }
+  ul.clean li:last-child { border-bottom:none; }
+  ul.clean li::before { content:'▸'; position:absolute; left:4px; color:var(--primary); }
+
+  /* question categories */
+  .qcat { border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin-bottom:12px; background:var(--card-2); }
+  .qcat h4 { margin:0 0 6px; font-size:16px; display:flex; align-items:center; gap:10px; }
+  .qcat .icon { font-size:18px; }
+  .qcat p { margin:0; font-size:14px; color:var(--muted); }
+
+  /* value chain builder */
+  .vc-stages { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0 16px; }
+  .vc-stage { display:inline-flex; align-items:center; gap:7px; background:var(--badge-bg); border:1px solid var(--border); border-radius:20px; padding:8px 14px; font-size:13px; font-weight:600; color:var(--navy); transition:var(--transition); }
+  .vc-stage.confirmed { border-color:var(--green); background:var(--green-glow); }
+  .vc-stage.added { border-color:var(--primary); background:var(--primary-glow); }
+  .vc-stage.removed { opacity:.35; text-decoration:line-through; }
+  .vc-stage .dot { width:7px; height:7px; border-radius:50%; background:var(--muted); }
+  .vc-stage.confirmed .dot { background:var(--green); }
+  .vc-stage.added .dot { background:var(--primary); }
+  .vc-arrow { color:var(--muted); font-weight:700; }
+  .vc-controls { display:flex; gap:10px; flex-wrap:wrap; margin-top:8px; }
+  .vc-btn { background:var(--badge-bg); border:1px solid var(--border); border-radius:8px; padding:8px 14px; cursor:pointer; color:var(--text); font-weight:600; font-size:13px; font-family:inherit; transition:var(--transition); }
+  .vc-btn:hover { border-color:var(--primary); transform:translateY(-2px); }
+  .vc-note { font-size:12.5px; color:var(--muted); margin-top:10px; min-height:18px; }
+
+  pre.code { background:var(--code-bg); border:1px solid var(--border); border-radius:12px; padding:20px; overflow-x:auto; font-size:12.5px; line-height:1.6; color:#e2e8f0; margin:0 0 8px; }
+  pre.code .c { color:#6b7a90; } pre.code .k { color:#7dd3fc; } pre.code .s { color:#ffb066; }
+
+  .file-card { display:flex; gap:14px; align-items:flex-start; background:var(--card-2); border:1px solid var(--border); border-radius:12px; padding:18px; transition:var(--transition); max-width:560px; }
+  .file-card:hover { border-color:var(--primary); transform:translateY(-3px); }
+  .file-ico { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:11px; padding:6px 8px; border-radius:6px; background:var(--primary-glow); color:var(--primary); flex-shrink:0; }
+  .file-card .fname { font-weight:600; color:var(--navy); font-size:14px; font-family:'JetBrains Mono',monospace; word-break:break-all; }
+  .file-card .fdesc { font-size:13px; color:var(--muted); margin-top:4px; }
+
+  footer.foot { border-top:1px solid var(--border); margin-top:60px; padding:40px 0; text-align:center; color:var(--muted); font-size:13px; }
+  footer.foot b { color:var(--navy); }
+
+  @media (max-width:700px){ .hero h1 { font-size:30px; } .logo-text { display:none; } section.block > .container > h2 { font-size:24px; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo-container">
+      <div class="logo-badge">RAG</div>
+      <div class="logo-text"><h2>Business Onboarding</h2><p>Tenant context · Type 7</p></div>
+    </div>
+    <div class="nav-actions">
+      <a class="pill-link" href="rag_population_strategy.html">↩ Population</a>
+      <a class="pill-link" href="index.html">⌂ Portal</a>
+      <button class="theme-toggle-btn" onclick="toggleTheme()"><span id="themeIcon">☀️</span><span id="themeText">Light Theme</span></button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <section class="hero">
+    <div class="hero-tag">Business Onboarding • Type 7 • v1.0.0</div>
+    <h1>Capture the business once, so the agent <span class="editorial-font">suggests instead of asks</span></h1>
+    <p class="lede">A guided intake of the customer's business context — what they are, what they sell, how they make money, and how their data flows — stored in the RAG so every new pipeline build asks fewer questions. A living record, maintained across the customer lifecycle.</p>
+    <div class="meta">Author: <b>Anvizent AI Team</b> &nbsp;•&nbsp; <b>Source D</b> of the RAG Population Strategy &nbsp;•&nbsp; Tenant-scoped · gated · company scope</div>
+  </section>
+</div>
+
+<nav class="section-nav" id="sectionNav">
+  <a href="#why">Why</a>
+  <a href="#principles">Principles</a>
+  <a href="#dataflow">Data Flow</a>
+  <a href="#tracks">Two Tracks</a>
+  <a href="#rag">Into the RAG</a>
+  <a href="#payoff">Question Cut</a>
+  <a href="#source">Source File</a>
+</nav>
+
+<!-- Why -->
+<section class="block" id="why">
+  <div class="container">
+    <div class="eyebrow">The gap it fills</div>
+    <h2>Day-one tenant grounding</h2>
+    <p class="section-lede">Per the reconciliation, there are no canonical patterns on day one and the industry seed is generic — so a brand-new tenant has no tenant-specific grounding. Business onboarding is how the customer supplies it, once, and keeps it current.</p>
+    <div class="callout green"><b>The payoff is question reduction.</b> The data-flow map is the spine: a question about "win rate" → context says <i>closing</i> runs in CRM X → the agent <b>suggests</b> the source and entities instead of asking cold. Each onboarded fact removes a class of repeated questions on every future build.</div>
+  </div>
+</section>
+
+<!-- Principles -->
+<section class="block" id="principles">
+  <div class="container">
+    <div class="eyebrow">Two core principles</div>
+    <h2>What's fixed, and what isn't</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>1 · The data flow is canonical; the stages are not</h3>
+        <p><b>Capturing the data flow is required for every business.</b> The steps vary by business type, so they are <b>not hard-coded</b> — the agent derives them with basic questions and <b>confirms with the user</b> (suggest &amp; confirm).</p>
+        <div class="callout">A common lifecycle is <i>offered as a template</i>, then adapted per business. The confirmed, business-specific stage list is what gets stored — never the template by assumption.</div>
+      </div>
+      <div class="panel">
+        <h3>2 · Business context is a living record</h3>
+        <p>Onboarding is the <b>initial seed, not a freeze.</b> Context is <b>updatable throughout the customer lifecycle</b> — new product lines, revenue streams, systems, changed processes.</p>
+        <div class="callout indigo">Updates <b>supersede</b> prior versions (lineage retained), triggered by explicit re-onboarding <i>or</i> surfaced during a build ("you told us X served <i>billing</i> — has that changed?").</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Data flow builder -->
+<section class="block" id="dataflow">
+  <div class="container">
+    <div class="eyebrow">Derive &amp; confirm</div>
+    <h2>The data-flow spine</h2>
+    <p class="section-lede">The agent proposes a starting template, then you adapt it. Try it — the stored flow is the <b>confirmed</b> one, not the suggestion.</p>
+    <div class="panel">
+      <h4 id="vcTitle">Agent's suggested flow (unconfirmed)</h4>
+      <div class="vc-stages" id="vcStages"></div>
+      <div class="vc-controls">
+        <button class="vc-btn" onclick="vcConfirm()">✓ Confirm as-is</button>
+        <button class="vc-btn" onclick="vcAddMarketing()">+ Add "marketing"</button>
+        <button class="vc-btn" onclick="vcSplitRenewal()">+ Split "renewal" from reselling</button>
+        <button class="vc-btn" onclick="vcAddSupply()">+ Add "supply / COGS" (margin)</button>
+        <button class="vc-btn" onclick="vcReset()">↺ Reset</button>
+      </div>
+      <div class="vc-note" id="vcNote">Each stage maps to its systems, key entities, and the handoff to the next stage.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Two tracks -->
+<section class="block" id="tracks">
+  <div class="container">
+    <div class="eyebrow">How it's captured</div>
+    <h2>Two onboarding tracks</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>A · Business onboarding <span class="chip gated">once, then maintained</span></h3>
+        <p style="color:var(--muted);">Answered by the <b>business user</b> (owner of requirements).</p>
+        <div class="qcat"><h4><span class="icon">🏷️</span> Identity</h4><p>What the business is · website · industry / vertical.</p></div>
+        <div class="qcat"><h4><span class="icon">📦</span> Offerings</h4><p>Products / services / solutions delivered to customers.</p></div>
+        <div class="qcat"><h4><span class="icon">⭐</span> Differentiation</h4><p>Unique advantages; why customers choose them.</p></div>
+        <div class="qcat"><h4><span class="icon">💰</span> Economics</h4><p>How they make money (revenue model) <b>and where margin comes from</b> — margin drivers + the cost / COGS side.</p></div>
+        <div class="qcat"><h4><span class="icon">🔀</span> Data flow</h4><p>The derived-and-confirmed stage list; per stage: systems, key entities, handoffs.</p></div>
+      </div>
+      <div class="panel">
+        <h3>B · System onboarding <span class="chip live">progressive</span></h3>
+        <p style="color:var(--muted);">Answered by the <b>engineer / analyst</b>, captured the moment a system is added (progressive opt-in — not demanded upfront).</p>
+        <ul class="clean">
+          <li>Which value-chain <b>stage(s)</b> it serves and its role</li>
+          <li>Key <b>objects / identifiers</b> and how records flow in &amp; out</li>
+          <li><b>Connection method</b> — API · webhook · FTP file · DB</li>
+          <li>If structure isn't known, the agent asks for it or a <b>doc link</b> and loads it into RAG (C7)</li>
+        </ul>
+        <div class="callout" style="margin-top:18px;">"As they want to get more systems involved, we onboard each system with a bit more detail" — the inventory deepens over time without a big upfront ask.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Into the RAG -->
+<section class="block" id="rag">
+  <div class="container">
+    <div class="eyebrow">Where it lands</div>
+    <h2>Type 7 in the knowledge store</h2>
+    <div class="grid-2">
+      <div class="panel">
+        <h3>Storage</h3>
+        <ul class="clean">
+          <li><b>Discovery vector</b> in <code>kb_chunk</code> (<code>knowledge_type='business_context'</code>, <code>scope='company'</code>)</li>
+          <li><b>Structured rows</b> in <code>business_context</code> · <code>value_chain_stage</code> · <code>system_inventory</code></li>
+          <li><b>Tenant database</b> — agents are tenant-specific (C10)</li>
+          <li><b>Living</b> — lifecycle updates supersede with lineage retained</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Shape</h3>
+        <pre class="code">{
+  <span class="k">"website"</span>: <span class="s">"acme.example"</span>, <span class="k">"vertical"</span>: <span class="s">"manufacturing"</span>,
+  <span class="k">"economics"</span>: { <span class="k">"revenue_model"</span>: <span class="s">"subscription + reselling"</span>,
+                  <span class="k">"margin_from"</span>: <span class="s">"services + COGS spread"</span> },
+  <span class="k">"value_chain"</span>: [           <span class="c">// derived + confirmed, not assumed</span>
+    { <span class="k">"seq"</span>:1, <span class="k">"name"</span>:<span class="s">"lead"</span>,    <span class="k">"systems"</span>:[<span class="s">"CRM"</span>],     <span class="k">"confirmed"</span>:true },
+    { <span class="k">"seq"</span>:2, <span class="k">"name"</span>:<span class="s">"closing"</span>, <span class="k">"systems"</span>:[<span class="s">"CRM"</span>],     <span class="k">"confirmed"</span>:true },
+    { <span class="k">"seq"</span>:3, <span class="k">"name"</span>:<span class="s">"billing"</span>, <span class="k">"systems"</span>:[<span class="s">"ERP"</span>],     <span class="k">"confirmed"</span>:true }
+  ]
+}</pre>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:0;">Full DDL (Type 7 enum + <code>business_context</code> / <code>value_chain_stage</code> / <code>system_inventory</code>) is in <a href="anvizent-rag-addon-schema.sql">anvizent-rag-addon-schema.sql</a>.</p>
+  </div>
+</section>
+
+<!-- Payoff -->
+<section class="block" id="payoff">
+  <div class="container">
+    <div class="eyebrow">The point</div>
+    <h2>How it cuts the question count</h2>
+    <div class="panel">
+      <p>During the agent build process, before asking, the agent reads Type 7:</p>
+      <ul class="clean">
+        <li><b>Source applications</b> (build step 1) — the system inventory already names the systems and the stages they serve → suggest, don't ask.</li>
+        <li><b>Which stage a metric belongs to</b> — the data-flow map routes "revenue" → billing, "pipeline" → lead/closing → suggests the right system/entities.</li>
+        <li><b>Metric framing</b> — the economics (revenue model, margin drivers) seed candidate metrics and their business meaning.</li>
+        <li><b>New systems</b> — system onboarding pre-answers the structural questions for that system on every future build.</li>
+      </ul>
+      <div class="callout green">Each onboarded fact removes a class of repeated questions; the living updates keep it from going stale.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Source -->
+<section class="block" id="source">
+  <div class="container">
+    <div class="eyebrow">Canonical source</div>
+    <h2>Source file</h2>
+    <a class="file-card" href="anvizent-business-onboarding-spec.md">
+      <span class="file-ico">MD</span>
+      <span><span class="fname">anvizent-business-onboarding-spec.md</span><span class="fdesc">The authoritative business-onboarding spec — tracks, principles, Type 7, and the locked decisions.</span></span>
+    </a>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="container">
+    <p>Business Onboarding — Tenant Context (Type 7) • v1.0.0 • Standard HTML5 / CSS3 / ES6</p>
+    <p style="font-size:11px;">Author: <b>Anvizent AI Team</b> • Source D of the RAG Population Strategy • Zero external dependencies (GitHub Pages-ready)</p>
+  </div>
+</footer>
+
+<script>
+  function toggleTheme(){ const l=document.body.classList.toggle('light-theme'); localStorage.setItem('portal-theme', l?'light':'dark'); updateThemeUI(l); }
+  function applyThemePreference(){ const s=localStorage.getItem('portal-theme'); const d=window.matchMedia('(prefers-color-scheme: dark)').matches; const l=s==='light'||(!s&&!d); document.body.classList.toggle('light-theme',l); updateThemeUI(l); }
+  function updateThemeUI(l){ const i=document.getElementById('themeIcon'),t=document.getElementById('themeText'); if(i&&t){ i.innerText=l?'🌙':'☀️'; t.innerText=l?'Dark Theme':'Light Theme'; } }
+  applyThemePreference();
+
+  // ---- value-chain builder demo ----
+  var TEMPLATE = ['prospect','lead','closing','delivery','billing','support','reselling'];
+  var stages, confirmed;
+  function vcReset(){ stages = TEMPLATE.map(function(n){return {name:n, state:'suggested'};}); confirmed=false; render(); note('Reset to the agent’s suggested template — still unconfirmed.'); }
+  function vcConfirm(){ confirmed=true; stages.forEach(function(s){ if(s.state!=='removed') s.state='confirmed'; }); render(); document.getElementById('vcTitle').innerText='Confirmed business-specific flow (stored)'; note('Stored. Only the confirmed flow lands in Type 7 — the template was never assumed.'); }
+  function vcAddMarketing(){ if(!stages.some(function(s){return s.name==='marketing';})){ stages.unshift({name:'marketing',state:'added'}); render(); note('Added an upstream stage — stages vary by business, so this is normal.'); } }
+  function vcSplitRenewal(){ if(!stages.some(function(s){return s.name==='renewal';})){ var i=stages.findIndex(function(s){return s.name==='reselling';}); stages.splice(i<0?stages.length:i,0,{name:'renewal',state:'added'}); render(); note('Split renewal/expansion out from reselling.'); } }
+  function vcAddSupply(){ if(!stages.some(function(s){return s.name==='supply / COGS';})){ stages.push({name:'supply / COGS',state:'added'}); render(); note('Added a cost-side stage so margin has its COGS source.'); } }
+  function note(t){ document.getElementById('vcNote').innerText=t; }
+  function render(){
+    var el=document.getElementById('vcStages'); el.innerHTML='';
+    stages.forEach(function(s,idx){
+      var d=document.createElement('span'); d.className='vc-stage '+(s.state==='confirmed'?'confirmed':s.state==='added'?'added':'');
+      d.innerHTML='<span class="dot"></span>'+s.name;
+      el.appendChild(d);
+      if(idx<stages.length-1){ var a=document.createElement('span'); a.className='vc-arrow'; a.textContent='→'; el.appendChild(a); }
+    });
+  }
+  vcReset();
+
+  // section nav
+  var navLinks=[].slice.call(document.querySelectorAll('#sectionNav a'));
+  var sections=navLinks.map(function(a){return document.querySelector(a.getAttribute('href'));});
+  var obs=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ var id='#'+e.target.id; navLinks.forEach(function(a){ a.classList.toggle('active', a.getAttribute('href')===id); }); } }); }, { rootMargin:'-45% 0px -50% 0px' });
+  sections.forEach(function(s){ if(s) obs.observe(s); });
+</script>
+</body>
+</html>

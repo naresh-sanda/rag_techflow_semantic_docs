@@ -394,7 +394,7 @@
       <div class="grid-2">
         <div class="panel">
           <h3>Consumes the RAG</h3>
-          <p>Every "is it in RAG?" check reads the knowledge store: structural docs (Type 1a), live schema (Type 1b cache), prior patterns (Type 2), semantics &amp; metrics (Type 3), the tenant's customizations (Type 4), and resolved datamarts (Type 6) — so the agent can <i>suggest</i> what it will use and let the user confirm. Retrieval respects the active <code>embed_model_version</code>.</p>
+          <p>Every "is it in RAG?" check reads the knowledge store — <b>starting with the tenant's <a href="rag_business_onboarding.html">business context</a> (Type 7)</b> to know the systems, value-chain stages and economics, then structural docs (Type 1a), live schema (Type 1b cache), prior patterns (Type 2), semantics &amp; metrics (Type 3), customizations (Type 4), and resolved datamarts (Type 6) — so the agent can <i>suggest</i> what it will use and let the user confirm. Retrieval respects the active <code>embed_model_version</code>.</p>
         </div>
         <div class="panel">
           <h3>Produces for the RAG</h3>
