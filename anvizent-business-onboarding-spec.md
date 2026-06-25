@@ -76,6 +76,32 @@ The customer rarely wants to answer everything from scratch — they already hav
 
 ---
 
+## Extraction quality validation
+
+**The validation is the user confirming — with the option to correct.** Extraction quality scoring does **not** decide whether a field is accepted; it decides **how the field is presented** to the user. Every extracted field ends at the same gate: **Confirm** (accept as-is) or **Correct** (edit it). Nothing enters Type 7 without that.
+
+### What we score per extracted field
+- **Confidence** — the model's extraction confidence (0–1).
+- **Grounding** — is the value **quoted** from a specific span/page/section/URL, or **inferred**? Quoted outranks inferred.
+- **Corroboration** — do multiple sources agree (e.g. the website *and* the deck)? Agreement raises quality; disagreement flags a conflict.
+- **Plausibility** — format/coherence checks (a URL looks like a URL; the revenue model is from the allowed set; the value-chain stages form a coherent ordered flow).
+
+### Disposition — how the field is shown (all roads lead to the user)
+| Disposition | When | How it's presented |
+|---|---|---|
+| **Confirm** | high confidence + grounded | **pre-filled** with its source; one-tap **Confirm** (or Correct) |
+| **Review** | medium / inferred | shown as a **draft, flagged**; user verifies or edits |
+| **Ask** | low confidence / missing | **falls back to a Q&A question** — don't guess |
+| **Conflict** | sources disagree | shows **both values + sources**; user picks or corrects |
+
+### The confirm-or-correct contract
+- Each field shows **value · source (provenance) · quality indicator · Confirm / Correct**.
+- **Correct** edits the value; the correction is stored (provenance = *user-corrected*) and, where it diverges from an existing definition, the user is asked **why** and the reason is recorded (C8).
+- **The user-confirmation gate is fixed.** Quality scoring only changes presentation/escalation — it can never auto-accept a field or skip confirmation.
+- **Thresholds are tunable, the gate is not.** The confidence cutoffs for Confirm / Review / Ask are **configuration parameters** (the loading-spec parameter registry, with the Locked / Learning toggle) — corrections are signal that can tune them over time — but no threshold ever removes the confirmation step.
+
+---
+
 ## How it lands in the RAG (Type 7)
 
 - **Knowledge type:** `business_context` (Type 7) — tenant-scoped, gated, **`company` scope** (C2 taxonomy).
@@ -108,3 +134,4 @@ Each onboarded fact removes a class of repeated questions; the living updates ke
 5. **Hybrid delivery** — business context upfront (once), system detail progressively (progressive opt-in).
 6. **Ownership** — business onboarding → business user; system onboarding → engineer / analyst.
 7. **Two intake modes** — guided Q&A **and** document / link upload (PDF · Word · images · website links, extensible). Uploads are **extracted → proposed → confirmed** (never auto-written), with **provenance** recorded and superseded on re-upload.
+8. **Extraction quality validation = user confirmation with correction.** Quality scoring (confidence · grounding · corroboration · plausibility) only sets how a field is presented — Confirm / Review / Ask / Conflict — and **never bypasses the user**. Every field ends at Confirm-or-Correct; thresholds are tunable, the gate is not.
