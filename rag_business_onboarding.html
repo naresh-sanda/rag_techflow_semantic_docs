@@ -122,6 +122,26 @@
   footer.foot b { color:var(--navy); }
 
   @media (max-width:700px){ .hero h1 { font-size:30px; } .logo-text { display:none; } section.block > .container > h2 { font-size:24px; } }
+
+  /* extraction-field review demo */
+  .ef-row { border:1px solid var(--border); border-radius:12px; padding:16px 18px; margin-bottom:12px; background:var(--card-2); transition:var(--transition); }
+  .ef-row.done { border-color:var(--green); background:var(--green-glow); }
+  .ef-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .ef-label { font-weight:600; color:var(--navy); font-size:14px; }
+  .ef-disp { font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:5px; letter-spacing:.04em; text-transform:uppercase; margin-left:auto; }
+  .ef-disp.confirm { background:var(--green-glow); color:#34d399; }
+  .ef-disp.review { background:rgba(245,158,11,.16); color:var(--amber); }
+  .ef-disp.ask { background:var(--indigo-glow); color:#a5b4fc; }
+  .ef-disp.conflict { background:rgba(239,68,68,.15); color:#f87171; }
+  .ef-val { font-family:'JetBrains Mono',monospace; font-size:14px; color:var(--navy); margin:8px 0 4px; }
+  .ef-val input { font-family:'JetBrains Mono',monospace; font-size:14px; background:var(--code-bg); color:#e2e8f0; border:1px solid var(--primary); border-radius:7px; padding:6px 10px; width:100%; max-width:380px; }
+  .ef-prov { font-size:12px; color:var(--muted); }
+  .ef-actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .ef-btn { background:var(--badge-bg); border:1px solid var(--border); border-radius:8px; padding:7px 14px; cursor:pointer; color:var(--text); font-weight:600; font-size:12.5px; font-family:inherit; transition:var(--transition); }
+  .ef-btn:hover { border-color:var(--primary); transform:translateY(-1px); }
+  .ef-btn.primary { background:var(--green); color:#fff; border-color:var(--green); }
+  .ef-status { font-size:12px; color:var(--green); font-weight:600; margin-top:8px; min-height:16px; }
+  .ef-summary { font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--navy); padding:10px 0 0; }
 </style>
 </head>
 <body>
@@ -155,6 +175,7 @@
   <a href="#dataflow">Data Flow</a>
   <a href="#tracks">Two Tracks</a>
   <a href="#intake">Intake</a>
+  <a href="#validation">Validation</a>
   <a href="#rag">Into the RAG</a>
   <a href="#payoff">Question Cut</a>
   <a href="#source">Source File</a>
@@ -282,6 +303,45 @@
   </div>
 </section>
 
+<!-- Validation -->
+<section class="block" id="validation">
+  <div class="container">
+    <div class="eyebrow">The gate</div>
+    <h2>Extraction quality validation = <span class="editorial-font">the user confirming</span></h2>
+    <p class="section-lede">Quality scoring doesn't decide whether a field is accepted — it decides how the field is <b>shown</b>. Every field ends at the same gate: <b>Confirm</b> (accept) or <b>Correct</b> (edit). Nothing enters Type 7 without it.</p>
+
+    <div class="grid-2">
+      <div class="panel">
+        <h3>What we score</h3>
+        <ul class="clean">
+          <li><b>Confidence</b> — the model's extraction confidence (0–1)</li>
+          <li><b>Grounding</b> — <b>quoted</b> from a span/page/URL vs <b>inferred</b></li>
+          <li><b>Corroboration</b> — do multiple sources agree, or conflict?</li>
+          <li><b>Plausibility</b> — format &amp; coherence checks</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Disposition — all roads lead to the user</h3>
+        <ul class="clean">
+          <li><b>Confirm</b> (high + grounded) → pre-filled, one-tap confirm</li>
+          <li><b>Review</b> (medium / inferred) → draft, flagged to verify/edit</li>
+          <li><b>Ask</b> (low / missing) → falls back to a question — don't guess</li>
+          <li><b>Conflict</b> (sources disagree) → show both, user picks/corrects</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Try the review queue</h3>
+      <p style="color:var(--muted);font-size:14px;">Four extracted fields, four dispositions. Confirm or correct each — only confirmed fields land in Type 7.</p>
+      <div id="efList"></div>
+      <div class="ef-summary" id="efSummary"></div>
+    </div>
+
+    <div class="callout"><b>The gate is fixed; the thresholds are not.</b> Confidence cutoffs for Confirm / Review / Ask are tunable config (the parameter registry, with the Locked / Learning toggle) — corrections become tuning signal — but no threshold ever removes the confirmation step.</div>
+  </div>
+</section>
+
 <!-- Into the RAG -->
 <section class="block" id="rag">
   <div class="container">
@@ -377,6 +437,46 @@
     });
   }
   vcReset();
+
+  // ---- extraction-field review queue ----
+  var fields = [
+    { label:'Website', disp:'confirm', dispLabel:'Confirm · high', value:'acme.example',
+      prov:'quoted · acme.com/about · confidence 0.96' },
+    { label:'Revenue model', disp:'review', dispLabel:'Review · medium', value:'subscription + reselling',
+      prov:'inferred from pitch-deck.pdf p.4 · confidence 0.71' },
+    { label:'Where margin comes from', disp:'ask', dispLabel:'Ask · low', value:'',
+      prov:'not found in any source — please answer' },
+    { label:'Primary vertical', disp:'conflict', dispLabel:'Conflict', value:'manufacturing',
+      alt:'industrial distribution', prov:'deck says "manufacturing"; website says "industrial distribution"' }
+  ];
+  fields.forEach(function(f){ f.state='open'; });
+  function efRender(){
+    var el=document.getElementById('efList'); el.innerHTML='';
+    fields.forEach(function(f,i){
+      var row=document.createElement('div'); row.className='ef-row'+(f.state==='done'?' done':'');
+      var valHtml;
+      if(f.state==='done'){ valHtml='<div class="ef-val">'+(f.value||'—')+'</div>'; }
+      else if(f.state==='editing'){ valHtml='<div class="ef-val"><input id="efIn'+i+'" value="'+(f.value||'')+'" placeholder="type a value"></div>'; }
+      else if(f.disp==='conflict'){ valHtml='<div class="ef-val">'+f.value+'  <span style="color:var(--muted)">|  '+f.alt+'</span></div>'; }
+      else { valHtml='<div class="ef-val">'+(f.value||'<span style="color:var(--muted)">(blank — needs an answer)</span>')+'</div>'; }
+      var actions='';
+      if(f.state==='done'){ actions='<div class="ef-status">✓ '+(f.corrected?'corrected &amp; confirmed':'confirmed')+' — stored in Type 7</div>'; }
+      else if(f.state==='editing'){ actions='<div class="ef-actions"><button class="ef-btn primary" onclick="efSave('+i+')">Save &amp; confirm</button><button class="ef-btn" onclick="efCancel('+i+')">Cancel</button></div>'; }
+      else if(f.disp==='conflict'){ actions='<div class="ef-actions"><button class="ef-btn primary" onclick="efPick('+i+',0)">Use "'+f.value+'"</button><button class="ef-btn" onclick="efPick('+i+',1)">Use "'+f.alt+'"</button><button class="ef-btn" onclick="efEdit('+i+')">Correct</button></div>'; }
+      else if(f.disp==='ask'){ actions='<div class="ef-actions"><button class="ef-btn primary" onclick="efEdit('+i+')">Answer</button></div>'; }
+      else { actions='<div class="ef-actions"><button class="ef-btn primary" onclick="efConfirm('+i+')">Confirm</button><button class="ef-btn" onclick="efEdit('+i+')">Correct</button></div>'; }
+      row.innerHTML='<div class="ef-head"><span class="ef-label">'+f.label+'</span><span class="ef-disp '+f.disp+'">'+f.dispLabel+'</span></div>'+valHtml+'<div class="ef-prov">'+f.prov+'</div>'+actions;
+      el.appendChild(row);
+    });
+    var done=fields.filter(function(f){return f.state==='done';}).length;
+    document.getElementById('efSummary').innerHTML=''+done+' / '+fields.length+' confirmed → Type 7'+(done===fields.length?'  ✓ all validated by the user':'');
+  }
+  window.efConfirm=function(i){ fields[i].state='done'; efRender(); };
+  window.efPick=function(i,which){ var f=fields[i]; f.value = which===0?f.value:f.alt; f.corrected=(which===1); f.state='done'; efRender(); };
+  window.efEdit=function(i){ fields[i].state='editing'; efRender(); var inp=document.getElementById('efIn'+i); if(inp) inp.focus(); };
+  window.efCancel=function(i){ fields[i].state='open'; efRender(); };
+  window.efSave=function(i){ var inp=document.getElementById('efIn'+i); if(inp){ var v=inp.value.trim(); if(v!==fields[i].value) fields[i].corrected=true; fields[i].value=v; } fields[i].state='done'; efRender(); };
+  efRender();
 
   // section nav
   var navLinks=[].slice.call(document.querySelectorAll('#sectionNav a'));

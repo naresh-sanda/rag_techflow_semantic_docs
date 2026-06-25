@@ -359,6 +359,31 @@ CREATE TABLE onboarding_source (
 CREATE INDEX ix_onboard_src_status ON onboarding_source (extraction);
 CREATE INDEX ix_onboard_src_ctx    ON onboarding_source (business_context_id);
 
+-- Per-field extraction quality validation. Quality scoring only sets disposition
+-- (how the field is shown); EVERY field still ends at user Confirm-or-Correct —
+-- no threshold bypasses the gate. Confidence cutoffs are tunable parameters.
+CREATE TYPE field_disposition AS ENUM ('confirm','review','ask','conflict');
+
+CREATE TABLE extracted_field (
+    id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    source_id       uuid NOT NULL REFERENCES onboarding_source(id) ON DELETE CASCADE,
+    field_path      text NOT NULL,                 -- e.g. 'economics.revenue_model'
+    candidate_value jsonb,                          -- extracted proposal
+    confidence      real,                           -- 0..1
+    grounding       text,                           -- 'quoted' | 'inferred'
+    source_span     text,                           -- page / section / URL anchor (provenance)
+    corroboration   int NOT NULL DEFAULT 1,         -- # sources agreeing (>1 raises quality)
+    disposition     field_disposition NOT NULL,     -- confirm | review | ask | conflict
+    confirmed       boolean NOT NULL DEFAULT false, -- the fixed user gate
+    corrected_value jsonb,                          -- set when the user corrects
+    resolution_note text,                           -- why corrected / which source chosen (C8)
+    decided_by      text,                           -- the confirming user
+    created_at      timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX ix_field_source      ON extracted_field (source_id);
+CREATE INDEX ix_field_disposition ON extracted_field (disposition) WHERE NOT confirmed;
+
 -- Progressive per-system onboarding (added at the moment a system is brought in).
 CREATE TABLE system_inventory (
     id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
