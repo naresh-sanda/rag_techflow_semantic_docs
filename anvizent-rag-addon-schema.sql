@@ -336,6 +336,29 @@ CREATE TABLE value_chain_stage (
     UNIQUE (seq, name)
 );
 
+-- Onboarding source provenance: documents/links the user uploads to populate
+-- business context. Formats are extracted, PROPOSED, then user-confirmed (never
+-- auto-written). Re-upload supersedes; each confirmed fact traces back here.
+CREATE TYPE onboarding_format AS ENUM ('pdf','docx','image','url','text','other');
+
+CREATE TABLE onboarding_source (
+    id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    format          onboarding_format NOT NULL,
+    file_name       text,                          -- for uploaded files
+    url             text,                          -- for website links
+    storage_ref     text,                          -- object-store ref to the raw artifact
+    extraction      text NOT NULL DEFAULT 'pending', -- pending|extracted|failed|confirmed
+    extracted       jsonb NOT NULL DEFAULT '{}',    -- candidate fields (proposed, pre-confirm)
+    confirmed       boolean NOT NULL DEFAULT false,
+    business_context_id uuid REFERENCES business_context(id), -- facts it produced
+    supersedes      uuid REFERENCES onboarding_source(id),    -- re-upload chain
+    uploaded_by     text,
+    uploaded_at     timestamptz NOT NULL DEFAULT now(),
+    updated_at      timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX ix_onboard_src_status ON onboarding_source (extraction);
+CREATE INDEX ix_onboard_src_ctx    ON onboarding_source (business_context_id);
+
 -- Progressive per-system onboarding (added at the moment a system is brought in).
 CREATE TABLE system_inventory (
     id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),

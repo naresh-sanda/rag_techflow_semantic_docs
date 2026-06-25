@@ -50,10 +50,36 @@ Answered by the **engineer / analyst**. For each source system, captured when it
 
 ---
 
+## Intake modes — Q&A *and* document / link upload
+
+The customer rarely wants to answer everything from scratch — they already have decks, brochures, contracts, and a website that describe the business. So context enters Type 7 two ways, and both feed the **same suggest-&-confirm** loop:
+
+1. **Guided Q&A** — the agent asks; the user answers (the tracks above).
+2. **Document & link upload** — the user supplies what they already have; the system **extracts candidate context** and **proposes it for confirmation**.
+
+### Supported formats
+| Format | Examples | Extraction |
+|---|---|---|
+| **PDF** | pitch decks, brochures, contracts, annual reports | text parse; **OCR** for scanned pages |
+| **Word** (`.docx`) | company overviews, SOPs, process docs | text + structure parse |
+| **Images** | logos, screenshots, org charts, scanned one-pagers | **OCR + vision** model |
+| **Website links** | homepage, About, Products, Pricing, How-it-works | fetch + readability extraction |
+| *(extensible)* | spreadsheets, slides, plain text | any format → extract → propose → confirm |
+
+### The ingestion flow
+**Upload / link → extract (parse · OCR · vision · fetch) → LLM proposes candidate fields and value-chain stages → user confirms / corrects → Type 7.**
+
+- **Never auto-written.** Extracted business facts are *proposals*; the business user confirms them — same guardrail as everywhere else (suggest & confirm; no silent canonization, C6/C8).
+- **Provenance.** Every uploaded artifact is recorded (format, file/URL, extraction status) and **linked to the facts it produced**, so each confirmed field is traceable to its source and the record stays auditable.
+- **Living.** Re-uploading an updated deck or re-fetching the website **supersedes** the prior extraction (lineage retained) — onboarding stays current across the customer lifecycle.
+- **Privacy.** The user uploads / links; the platform never reaches into systems on its own. Untrusted document content is treated as data to extract, not instructions to act on.
+
+---
+
 ## How it lands in the RAG (Type 7)
 
 - **Knowledge type:** `business_context` (Type 7) — tenant-scoped, gated, **`company` scope** (C2 taxonomy).
-- **Storage:** a **discovery vector** in `kb_chunk` (`knowledge_type='business_context'`) **plus** the structured relational record (`business_context` + `value_chain_stage` + `system_inventory`) in the **tenant database** (agents are tenant-specific, C10).
+- **Storage:** a **discovery vector** in `kb_chunk` (`knowledge_type='business_context'`) **plus** the structured relational record (`business_context` + `value_chain_stage` + `system_inventory`) and the upload **provenance** (`onboarding_source`) in the **tenant database** (agents are tenant-specific, C10).
 - **Population:** **Source D** — tenant-supplied business onboarding. Foundational load + lifecycle updates (distinct from the generic Source B seed and the earned Source C usage).
 - **Refresh / eviction:** version-supersede on any lifecycle update; prior retained read-only for lineage.
 - **Retrieval:** consulted **first** in the agent's suggest-&-confirm loop, scoped to the tenant and the active `embed_model_version` (C13).
@@ -81,3 +107,4 @@ Each onboarded fact removes a class of repeated questions; the living updates ke
 4. **Source D** in the population model — tenant-supplied, foundational + lifecycle-maintained.
 5. **Hybrid delivery** — business context upfront (once), system detail progressively (progressive opt-in).
 6. **Ownership** — business onboarding → business user; system onboarding → engineer / analyst.
+7. **Two intake modes** — guided Q&A **and** document / link upload (PDF · Word · images · website links, extensible). Uploads are **extracted → proposed → confirmed** (never auto-written), with **provenance** recorded and superseded on re-upload.
