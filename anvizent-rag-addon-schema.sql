@@ -188,7 +188,8 @@ SET search_path = kb;
 
 CREATE TYPE knowledge_type AS ENUM
     ('sor_doc','pattern','semantics','telemetry_insight','customization',
-     'resolved_semantics');                              -- Type 6: DW/datamart catalog
+     'resolved_semantics',                               -- Type 6: DW/datamart catalog
+     'business_context');                                -- Type 7: tenant business onboarding
 CREATE TYPE chunk_status   AS ENUM ('active','deprecated');
 
 -- Type 6 scope: resolved context spans the company down to a single user.
@@ -296,6 +297,58 @@ CREATE INDEX ix_datamart_scope     ON datamart_catalog (scope, scope_ref);
 CREATE INDEX ix_datamart_canonical ON datamart_catalog (is_canonical) WHERE is_canonical;
 CREATE INDEX ix_datamart_composes  ON datamart_catalog USING gin (composes_of);
 
+-- ---- Type 7 business onboarding context (living, tenant-scoped) -----
+-- The kb_chunk row (knowledge_type='business_context', scope='company') is the
+-- discovery vector; these tables hold the structured profile, the derived value
+-- chain, and the system inventory. Updatable across the customer lifecycle:
+-- changes supersede prior rows (lineage retained), never overwrite blindly.
+CREATE TYPE connection_method AS ENUM ('api','webhook','ftp_file','db','other');
+
+CREATE TABLE business_context (
+    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    website       text,
+    vertical      text,
+    identity      jsonb NOT NULL DEFAULT '{}',   -- what the business is
+    offerings     jsonb NOT NULL DEFAULT '[]',   -- products / services / solutions
+    differentiation jsonb NOT NULL DEFAULT '[]', -- unique advantages
+    economics     jsonb NOT NULL DEFAULT '{}',   -- revenue model + margin/COGS drivers
+    chunk_id      uuid REFERENCES kb_chunk(id),  -- discovery vector (Type 7)
+    version       int  NOT NULL DEFAULT 1,        -- lifecycle revisions
+    supersedes    uuid REFERENCES business_context(id),
+    is_current    boolean NOT NULL DEFAULT true,
+    last_updated_by text,                          -- business user (owner of requirements)
+    created_at    timestamptz NOT NULL DEFAULT now(),
+    updated_at    timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX ix_bizctx_current ON business_context (is_current) WHERE is_current;
+
+-- Derived, user-confirmed value-chain stages (canonical to capture; steps vary).
+CREATE TABLE value_chain_stage (
+    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    seq           int  NOT NULL,                  -- order in the flow
+    name          text NOT NULL,                  -- e.g. 'closing', 'billing' (per business)
+    systems       text[] NOT NULL DEFAULT '{}',   -- systems serving this stage
+    entities      text[] NOT NULL DEFAULT '{}',   -- key business entities
+    handoff_to    text,                           -- next stage / handoff
+    confirmed     boolean NOT NULL DEFAULT false, -- suggest & confirm (C6) — never assumed
+    created_at    timestamptz NOT NULL DEFAULT now(),
+    updated_at    timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (seq, name)
+);
+
+-- Progressive per-system onboarding (added at the moment a system is brought in).
+CREATE TABLE system_inventory (
+    id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    system_name   text NOT NULL UNIQUE,
+    stages        text[] NOT NULL DEFAULT '{}',   -- value-chain stage(s) it serves
+    role          text,
+    key_objects   jsonb NOT NULL DEFAULT '[]',    -- objects / identifiers
+    connection    connection_method,             -- api | webhook | ftp_file | db
+    doc_ref       text,                           -- user-supplied doc/link (C7 ingestion)
+    onboarded_at  timestamptz NOT NULL DEFAULT now(),
+    updated_at    timestamptz NOT NULL DEFAULT now()
+);
+
 -- =====================================================================
 -- NOTES
 --  • Live source schema (Type 1b) is NOT stored here — metadata-service
@@ -317,4 +370,9 @@ CREATE INDEX ix_datamart_composes  ON datamart_catalog USING gin (composes_of);
 --  • Canonical status is EARNED via tenant usage, never seeded (C11):
 --    is_canonical flips on once a datamart/pattern recurs across usage.
 --  • Retrieval co-mixes only same embed_model_version vectors (C13).
+--  • Type 7 (business_context): captured via business onboarding (Source D),
+--    tenant-scoped, company-scope. The data flow is canonical to capture but
+--    its stages are DERIVED per business and user-confirmed (value_chain_stage
+--    .confirmed) — never hard-coded. It is a LIVING record: lifecycle updates
+--    supersede prior rows; consulted first by the agent to cut question count.
 -- =====================================================================

@@ -423,6 +423,7 @@
           <div class="kt-tab" data-kt="4"><span class="num">TYPE 4</span><span class="name">Customer customizations</span><span class="rgm">Hot · tenant-scoped</span></div>
           <div class="kt-tab" data-kt="5"><span class="num">TYPE 5</span><span class="name">Telemetry feedback</span><span class="rgm">Hot · platform-generated</span></div>
           <div class="kt-tab" data-kt="6"><span class="num">TYPE 6</span><span class="name">Resolved contextual semantics</span><span class="rgm">DW/datamart catalog · scoped</span></div>
+          <div class="kt-tab" data-kt="7"><span class="num">TYPE 7</span><span class="name">Business onboarding context</span><span class="rgm">Living tenant profile</span></div>
         </div>
 
         <div class="kt-body active" data-kt="1a">
@@ -517,6 +518,19 @@
             <div>Eviction</div><div>Supersede on re-confirmation; disuse decay. Canonical (common) datamarts are <b>earned via usage, not seeded</b>.</div>
           </div>
         </div>
+
+        <div class="kt-body" data-kt="7">
+          <h3>Type 7 — Business onboarding context <span class="chip gated">Living tenant profile</span></h3>
+          <p>The tenant's own business context — what it is, what it sells, how it makes money, and how its data flows. The day-one tenant grounding (since canonicals are emergent and Source B is generic). See the <a href="rag_business_onboarding.html">Business Onboarding</a> spec.</p>
+          <div class="kt-meta-grid">
+            <div>Source</div><div>Business onboarding Q&amp;A (<b>Source D</b>) — business user supplies it; system detail added progressively.</div>
+            <div>Trigger</div><div>Foundational onboarding <b>plus lifecycle updates</b> any time the business changes.</div>
+            <div>Transform</div><div>Discovery vector (<code>business_context</code>) + structured <code>business_context</code> / <code>value_chain_stage</code> / <code>system_inventory</code> rows.</div>
+            <div>Data flow</div><div>Capturing the flow is <b>canonical</b>; the <b>stages are derived per business and user-confirmed</b> — never hard-coded.</div>
+            <div>Scope</div><div><code>company</code>; tenant DB; tenant-specific (C10).</div>
+            <div>Eviction</div><div><b>Living record</b> — updates supersede prior with lineage retained.</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -549,6 +563,7 @@
             <li><b>Capture is usage-based, not deploy-based:</b> confirmation + validation + usage (onetime = narrow/low; scheduled = purpose served).</li>
             <li><b>Canonicals are emergent, not seeded:</b> earned through tenant usage.</li>
             <li><b>Agents are tenant-specific:</b> global agents deferred.</li>
+            <li><b>Type 7:</b> Business onboarding context — living tenant profile + derived/confirmed value chain + system inventory; consulted first to cut question count.</li>
           </ul>
         </div>
       </div>
